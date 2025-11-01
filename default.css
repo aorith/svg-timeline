@@ -1,0 +1,41 @@
+.tl-bg {
+  fill: #ffffff;
+}
+
+.tl-event {
+  cursor: pointer;
+}
+
+.tl-event rect {
+  fill: rgba(115, 105, 250, 0.8);
+}
+
+.tl-event:hover rect {
+  fill: rgba(120, 110, 255, 1);
+  stroke: #000000;
+  stroke-width: 1;
+}
+
+.tl-event text {
+  fill: #ffffff;
+}
+
+.tl-era rect {
+  fill: rgba(200, 240, 240, 0.35);
+  stroke: rgba(200, 240, 240, 0.95);
+  stroke-width: 1;
+}
+
+.tl-era text {
+  fill: #000000;
+}
+
+.tl-axis,
+.tl-ticks line {
+  stroke: #333333;
+  stroke-width: 2;
+}
+
+.tl-ticks text {
+  fill: #333333;
+}
