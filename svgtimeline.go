@@ -24,8 +24,7 @@ type Event struct {
 	Text     string        // text displayed inside of the event rectangle if the event duration provides sufficient width
 	Title    string        // tooltip text
 	Duration time.Duration // event duration
-	Offset   time.Duration // offset from the start
-	Time     *time.Time    // absolute time when this event started
+	Time     time.Time     // absolute start time (leave zero for auto positioning by last duration)
 }
 
 // Era represents a timeline era
@@ -34,8 +33,7 @@ type Era struct {
 	Class    string        // CSS class name
 	Text     string        // text displayed
 	Duration time.Duration // era duration
-	Offset   time.Duration // offset from the start
-	Time     *time.Time    // Absolute time when this era started
+	Time     time.Time     // absolute start time (leave zero for auto positioning by last duration)
 }
 
 // Row represents a row in the timeline
@@ -100,22 +98,36 @@ func (r *Row) AddEra(e Era) {
 }
 
 // getTotalDuration calculates the total duration for a row
-func (r *Row) getTotalDuration() time.Duration {
+func (r *Row) getTotalDuration(earliest time.Time) time.Duration {
 	var total time.Duration
+	var maxByTime time.Duration
+
 	for _, era := range r.eras {
-		total += era.Duration + era.Offset
+		total += era.Duration
+		if !earliest.IsZero() && !era.Time.IsZero() {
+			byTime := era.Time.Sub(earliest) + era.Duration
+			if byTime > maxByTime {
+				maxByTime = byTime
+			}
+		}
 	}
 	for _, event := range r.events {
-		total += event.Duration + event.Offset
+		total += event.Duration
+		if !earliest.IsZero() && !event.Time.IsZero() {
+			byTime := event.Time.Sub(earliest) + event.Duration
+			if byTime > maxByTime {
+				maxByTime = byTime
+			}
+		}
 	}
-	return total
+	return max(total, maxByTime)
 }
 
 // getMaxDuration returns the maximum duration across all rows
-func (t *Timeline) getMaxDuration() time.Duration {
+func (t *Timeline) getMaxDuration(earliest time.Time) time.Duration {
 	var m time.Duration
 	for _, row := range t.rows {
-		duration := row.getTotalDuration()
+		duration := row.getTotalDuration(earliest)
 		if duration > m {
 			m = duration
 		}
@@ -134,17 +146,17 @@ func (t *Timeline) getTotalRowHeight() int {
 
 // offsetsByTime is a helper to ensure Time consistency across events/eras
 // it returns the earliest time of all events/eras if Time is set on them
-func (t *Timeline) offsetsByTime() (*time.Time, error) {
+func (t *Timeline) offsetsByTime() (time.Time, error) {
 	var hasTime, hasNoTime bool
-	var earliest *time.Time
+	var earliest time.Time
 
-	check := func(timePtr *time.Time) {
-		if timePtr == nil {
+	check := func(t time.Time) {
+		if t.IsZero() {
 			hasNoTime = true
 		} else {
 			hasTime = true
-			if earliest == nil || timePtr.Before(*earliest) {
-				earliest = timePtr
+			if earliest.IsZero() || t.Before(earliest) {
+				earliest = t
 			}
 		}
 	}
@@ -159,7 +171,7 @@ func (t *Timeline) offsetsByTime() (*time.Time, error) {
 	}
 
 	if hasTime && hasNoTime {
-		return nil, fmt.Errorf("if 'Time' is set on any Event/Era, it must be set on all of them")
+		return earliest, fmt.Errorf("if 'Time' is set on any Event/Era, it must be set on all of them")
 	}
 
 	return earliest, nil
@@ -197,7 +209,7 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 	marginBottom := cfg.Margins[2]
 	marginLeft := cfg.Margins[3]
 
-	maxDuration := t.getMaxDuration()
+	maxDuration := t.getMaxDuration(earliest)
 	totalHeight := t.getTotalRowHeight()
 	svgHeight := totalHeight + marginTop + marginBottom + tickHeight + tickLabelMargin
 
@@ -239,10 +251,9 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 		// Draw eras
 		for _, era := range row.eras {
 			eraHeight := svgHeight - currentY - marginBottom - (tickHeight * 2) + 2
-			if earliest == nil {
-				currentDuration += era.Offset
-			} else {
-				currentDuration = durationOffset(*earliest, *era.Time) + era.Offset
+
+			if !earliest.IsZero() {
+				currentDuration = durationOffset(earliest, era.Time)
 			}
 
 			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
@@ -277,18 +288,15 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 
 			sb.WriteString("</g>\n")
 
-			if earliest == nil {
+			if earliest.IsZero() {
 				currentDuration += era.Duration
 			}
 		}
 
 		// Draw events
 		for _, event := range row.events {
-			currentDuration += event.Offset
-			if earliest == nil {
-				currentDuration += event.Offset
-			} else {
-				currentDuration = durationOffset(*earliest, *event.Time) + event.Offset
+			if !earliest.IsZero() {
+				currentDuration = durationOffset(earliest, event.Time)
 			}
 
 			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
@@ -326,7 +334,7 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 
 			sb.WriteString("</g>\n")
 
-			if earliest == nil {
+			if earliest.IsZero() {
 				currentDuration += event.Duration
 			}
 		}
