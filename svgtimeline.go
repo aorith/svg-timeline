@@ -19,21 +19,23 @@ var defs string
 
 // Event represents a timeline event
 type Event struct {
-	ID       string
-	Class    string
-	Text     string
-	Title    string
-	Duration time.Duration
-	Offset   time.Duration
+	ID       string        // unique HTML identifier
+	Class    string        // CSS class name
+	Text     string        // text displayed inside of the event rectangle if the event duration provides sufficient width
+	Title    string        // tooltip text
+	Duration time.Duration // event duration
+	Offset   time.Duration // offset from the start
+	Time     *time.Time    // absolute time when this event started
 }
 
 // Era represents a timeline era
 type Era struct {
-	ID       string
-	Class    string
-	Text     string
-	Duration time.Duration
-	Offset   time.Duration
+	ID       string        // unique HTML identifier
+	Class    string        // CSS class name
+	Text     string        // text displayed
+	Duration time.Duration // era duration
+	Offset   time.Duration // offset from the start
+	Time     *time.Time    // Absolute time when this era started
 }
 
 // Row represents a row in the timeline
@@ -130,8 +132,51 @@ func (t *Timeline) getTotalRowHeight() int {
 	return total
 }
 
+// offsetsByTime is a helper to ensure Time consistency across events/eras
+// it returns the earliest time of all events/eras if Time is set on them
+func (t *Timeline) offsetsByTime() (*time.Time, error) {
+	var hasTime, hasNoTime bool
+	var earliest *time.Time
+
+	check := func(timePtr *time.Time) {
+		if timePtr == nil {
+			hasNoTime = true
+		} else {
+			hasTime = true
+			if earliest == nil || timePtr.Before(*earliest) {
+				earliest = timePtr
+			}
+		}
+	}
+
+	for _, r := range t.rows {
+		for _, e := range r.events {
+			check(e.Time)
+		}
+		for _, e := range r.eras {
+			check(e.Time)
+		}
+	}
+
+	if hasTime && hasNoTime {
+		return nil, fmt.Errorf("if 'Time' is set on any Event/Era, it must be set on all of them")
+	}
+
+	return earliest, nil
+}
+
+// durationOffset is a helper function to obtain the duration offset between s and e
+func durationOffset(s, e time.Time) time.Duration {
+	return e.Sub(s)
+}
+
 // Generate creates the SVG string
-func (t *Timeline) Generate(cfg TimelineConfig) string {
+func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
+	earliest, err := t.offsetsByTime()
+	if err != nil {
+		return "", err
+	}
+
 	const tickHeight = 5
 	const tickLabelMargin = 15
 
@@ -189,14 +234,18 @@ func (t *Timeline) Generate(cfg TimelineConfig) string {
 		if maxDuration <= 0 {
 			break
 		}
-		var currentTime time.Duration
+		var currentDuration time.Duration
 
 		// Draw eras
 		for _, era := range row.eras {
 			eraHeight := svgHeight - currentY - marginBottom - (tickHeight * 2) + 2
-			currentTime += era.Offset
+			if earliest == nil {
+				currentDuration += era.Offset
+			} else {
+				currentDuration = durationOffset(*earliest, *era.Time) + era.Offset
+			}
 
-			startX := float64(marginLeft) + float64(contentWidth)*float64(currentTime)/float64(maxDuration)
+			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
 			eraWidth := float64(contentWidth) * float64(era.Duration) / float64(maxDuration)
 
 			sb.WriteString("<g")
@@ -228,14 +277,21 @@ func (t *Timeline) Generate(cfg TimelineConfig) string {
 
 			sb.WriteString("</g>\n")
 
-			currentTime += era.Duration
+			if earliest == nil {
+				currentDuration += era.Duration
+			}
 		}
 
 		// Draw events
 		for _, event := range row.events {
-			currentTime += event.Offset
+			currentDuration += event.Offset
+			if earliest == nil {
+				currentDuration += event.Offset
+			} else {
+				currentDuration = durationOffset(*earliest, *event.Time) + event.Offset
+			}
 
-			startX := float64(marginLeft) + float64(contentWidth)*float64(currentTime)/float64(maxDuration)
+			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
 			eventWidth := float64(contentWidth) * float64(event.Duration) / float64(maxDuration)
 
 			sb.WriteString("<g")
@@ -270,7 +326,9 @@ func (t *Timeline) Generate(cfg TimelineConfig) string {
 
 			sb.WriteString("</g>\n")
 
-			currentTime += event.Duration
+			if earliest == nil {
+				currentDuration += event.Duration
+			}
 		}
 
 		currentY += row.height + row.separatorHeight
@@ -306,7 +364,7 @@ func (t *Timeline) Generate(cfg TimelineConfig) string {
 	sb.WriteString("</g>\n")
 
 	sb.WriteString("</svg>")
-	return sb.String()
+	return sb.String(), nil
 }
 
 // escapeXML escapes special XML characters
