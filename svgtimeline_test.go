@@ -15,51 +15,50 @@ var testSVG1 string
 var testSVG2 string
 
 type testRow struct {
-	eras   []svgtimeline.Era
 	events []svgtimeline.Event
 }
 
 func TestNewTimeline(t *testing.T) {
 	rows1 := []testRow{
 		{
-			eras: []svgtimeline.Era{
-				{Class: "ctl-request", Text: "262_req", Duration: 10 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 50, 0, time.UTC)},
-			},
-		},
-		{
-			eras: []svgtimeline.Era{
-				{Class: "ctl-bereq", Text: "32783_bereq", Duration: 4 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 53, 0, time.UTC)},
+			events: []svgtimeline.Event{
+				{Type: svgtimeline.EventTypeEra, Class: "ctl-request", Text: "262_req", Duration: 10 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 50, 0, time.UTC)},
 			},
 		},
 		{
 			events: []svgtimeline.Event{
-				{Class: "ctl-e-long", Text: "Long", Duration: 10 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 51, 0, time.UTC)},
-				{Class: "ctl-e-long", Text: "Short", Duration: 3 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 60, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeEra, Class: "ctl-bereq", Text: "32783_bereq", Duration: 4 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 53, 0, time.UTC)},
 			},
 		},
 		{
 			events: []svgtimeline.Event{
-				{Class: "ctl-e-fetch", Text: "Fetch", Duration: 1 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 51, 0, time.UTC)},
-				{Class: "ctl-e-process", Text: "Process", Duration: 2 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 52, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-long", Text: "Long", Duration: 10 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 51, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-long", Text: "Short", Duration: 3 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 60, 0, time.UTC)},
 			},
 		},
 		{
 			events: []svgtimeline.Event{
-				{Class: "ctl-e-beresp", Text: "Beresp", Duration: 2 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 55, 0, time.UTC)},
-				{Class: "ctl-e-berespbody", Text: "BerespBody", Duration: 3 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 57, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-fetch", Text: "Fetch", Duration: 1 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 51, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-process", Text: "Process", Duration: 2 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 52, 0, time.UTC)},
+			},
+		},
+		{
+			events: []svgtimeline.Event{
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-beresp", Text: "Beresp", Duration: 2 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 55, 0, time.UTC)},
+				{Type: svgtimeline.EventTypeTask, Class: "ctl-e-berespbody", Text: "BerespBody", Duration: 3 * time.Second, Time: time.Date(2025, 11, 1, 12, 20, 57, 0, time.UTC)},
 			},
 		},
 	}
 
 	rows2 := []testRow{
 		{
-			eras: []svgtimeline.Era{
-				{Class: "ctl-request", Text: "262_req", Duration: 10 * time.Second},
+			events: []svgtimeline.Event{
+				{Type: svgtimeline.EventTypeEra, Class: "ctl-request", Text: "262_req", Duration: 10 * time.Second},
 			},
 		},
 		{
-			eras: []svgtimeline.Era{
-				{Class: "ctl-bereq", Text: "32783_bereq", Duration: 4 * time.Second},
+			events: []svgtimeline.Event{
+				{Type: svgtimeline.EventTypeEra, Class: "ctl-bereq", Text: "32783_bereq", Duration: 4 * time.Second},
 			},
 		},
 		{
@@ -118,16 +117,13 @@ func TestNewTimeline(t *testing.T) {
 			tl := svgtimeline.NewTimeline()
 			for _, tr := range tt.rows {
 				row := tl.AddRow(30, 5)
-				for _, era := range tr.eras {
-					row.AddEra(era)
-				}
 				for _, event := range tr.events {
 					row.AddEvent(event)
 				}
 			}
 			svg, _ := tl.Generate(svgtimeline.DefaultTimelineConfig())
 			if svg != tt.want {
-				t.Errorf("NewTimeline() = %v, want %v", svg, tt.want)
+				t.Errorf("'%s'\n got =\n%v\n want =\n%v", tt.name, svg, tt.want)
 			}
 		})
 	}

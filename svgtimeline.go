@@ -17,8 +17,16 @@ var DefaultStyle string
 //go:embed defs.xml
 var defs string
 
+type EventType int
+
+const (
+	EventTypeTask EventType = iota // A discrete unit of work rendered as a rectangle within its row
+	EventTypeEra                   // A time period that spans vertically across all rows below it
+)
+
 // Event represents a timeline event
 type Event struct {
+	Type     EventType
 	ID       string        // unique HTML identifier
 	Class    string        // CSS class name
 	Text     string        // text displayed inside of the event rectangle if the event duration provides sufficient width
@@ -27,21 +35,11 @@ type Event struct {
 	Time     time.Time     // absolute start time (leave zero for auto positioning by last duration)
 }
 
-// Era represents a timeline era
-type Era struct {
-	ID       string        // unique HTML identifier
-	Class    string        // CSS class name
-	Text     string        // text displayed
-	Duration time.Duration // era duration
-	Time     time.Time     // absolute start time (leave zero for auto positioning by last duration)
-}
-
 // Row represents a row in the timeline
 type Row struct {
 	height          int
 	separatorHeight int
 	events          []Event
-	eras            []Era
 }
 
 // TimelineConfig represents a timeline config
@@ -92,25 +90,11 @@ func (r *Row) AddEvent(e Event) {
 	r.events = append(r.events, e)
 }
 
-// AddEra adds an era to a row
-func (r *Row) AddEra(e Era) {
-	r.eras = append(r.eras, e)
-}
-
 // getTotalDuration calculates the total duration for a row
 func (r *Row) getTotalDuration(earliest time.Time) time.Duration {
 	var total time.Duration
 	var maxByTime time.Duration
 
-	for _, era := range r.eras {
-		total += era.Duration
-		if !earliest.IsZero() && !era.Time.IsZero() {
-			byTime := era.Time.Sub(earliest) + era.Duration
-			if byTime > maxByTime {
-				maxByTime = byTime
-			}
-		}
-	}
 	for _, event := range r.events {
 		total += event.Duration
 		if !earliest.IsZero() && !event.Time.IsZero() {
@@ -144,8 +128,8 @@ func (t *Timeline) getTotalRowHeight() int {
 	return total
 }
 
-// offsetsByTime is a helper to ensure Time consistency across events/eras
-// it returns the earliest time of all events/eras if Time is set on them
+// offsetsByTime is a helper to ensure Time consistency across events
+// it returns the earliest time of all events if Time is set on them
 func (t *Timeline) offsetsByTime() (time.Time, error) {
 	var hasTime, hasNoTime bool
 	var earliest time.Time
@@ -165,13 +149,10 @@ func (t *Timeline) offsetsByTime() (time.Time, error) {
 		for _, e := range r.events {
 			check(e.Time)
 		}
-		for _, e := range r.eras {
-			check(e.Time)
-		}
 	}
 
 	if hasTime && hasNoTime {
-		return earliest, fmt.Errorf("if 'Time' is set on any Event/Era, it must be set on all of them")
+		return earliest, fmt.Errorf("if 'Time' is set on any Event, it must be set on all of them")
 	}
 
 	return earliest, nil
@@ -248,94 +229,95 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 		}
 		var currentDuration time.Duration
 
-		// Draw eras
-		for _, era := range row.eras {
-			eraHeight := svgHeight - currentY - marginBottom - (tickHeight * 2) + 2
-
-			if !earliest.IsZero() {
-				currentDuration = durationOffset(earliest, era.Time)
-			}
-
-			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
-			eraWidth := float64(contentWidth) * float64(era.Duration) / float64(maxDuration)
-
-			sb.WriteString("<g")
-			if era.ID != "" {
-				sb.WriteString(fmt.Sprintf(` id="%s"`, era.ID))
-			}
-			if era.Class == "" {
-				sb.WriteString(` class="tl-era"`)
-			} else {
-				sb.WriteString(fmt.Sprintf(` class="tl-era %s"`, era.Class))
-			}
-			sb.WriteString(">\n")
-
-			// NOTE: using a 'hack' to set only the left & right borders: stroke-dasharray="0, <width>, <height>, 0"
-			sb.WriteString(fmt.Sprintf(`<rect x="%f" y="%d" width="%f" height="%d" stroke-dasharray="0,%[3]f,%[4]d,0" />`,
-				startX, currentY, eraWidth, eraHeight))
-			sb.WriteString("\n")
-
-			// Draw era text
-			if era.Text != "" && eraWidth > float64(len(era.Text)*5) { // pixels per char
-				textSize := int(max(8, min(float64(row.height/3)+2, float64(eraWidth/4)+3)))
-				textX := startX + eraWidth/2
-				textY := float64(currentY) + float64(row.height)/3
-
-				sb.WriteString(fmt.Sprintf(`<text x="%f" y="%f" font-family="monospace" font-size="%d" dominant-baseline="middle" text-anchor="middle">%s</text>`,
-					textX, textY, textSize, escapeXML(era.Text)))
-				sb.WriteString("\n")
-			}
-
-			sb.WriteString("</g>\n")
-
-			if earliest.IsZero() {
-				currentDuration += era.Duration
-			}
-		}
-
 		// Draw events
 		for _, event := range row.events {
-			if !earliest.IsZero() {
-				currentDuration = durationOffset(earliest, event.Time)
-			}
+			switch event.Type {
+			case EventTypeTask:
+				if !earliest.IsZero() {
+					currentDuration = durationOffset(earliest, event.Time)
+				}
 
-			startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
-			eventWidth := float64(contentWidth) * float64(event.Duration) / float64(maxDuration)
+				startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
+				eventWidth := float64(contentWidth) * float64(event.Duration) / float64(maxDuration)
 
-			sb.WriteString("<g")
-			if event.ID != "" {
-				sb.WriteString(fmt.Sprintf(` id="%s"`, event.ID))
-			}
-			if event.Class == "" {
-				sb.WriteString(` class="tl-event"`)
-			} else {
-				sb.WriteString(fmt.Sprintf(` class="tl-event %s"`, event.Class))
-			}
-			sb.WriteString(">\n")
+				sb.WriteString("<g")
+				if event.ID != "" {
+					sb.WriteString(fmt.Sprintf(` id="%s"`, event.ID))
+				}
+				if event.Class == "" {
+					sb.WriteString(` class="tl-event"`)
+				} else {
+					sb.WriteString(fmt.Sprintf(` class="tl-event %s"`, event.Class))
+				}
+				sb.WriteString(">\n")
 
-			if event.Title != "" {
-				sb.WriteString(fmt.Sprintf(`<title>%s</title>`, escapeXML(event.Title)))
-			}
+				if event.Title != "" {
+					sb.WriteString(fmt.Sprintf(`<title>%s</title>`, escapeXML(event.Title)))
+				}
 
-			sb.WriteString(fmt.Sprintf(`<rect x="%f" y="%d" width="%f" height="%d" />`,
-				startX, currentY, eventWidth, row.height))
-			sb.WriteString("\n")
-
-			// Draw event text
-			if event.Text != "" && eventWidth > float64(len(event.Text)*5) { // pixels per char
-				textSize := int(max(8, min(float64(row.height/3)+2, float64(eventWidth/4)+3)))
-				textX := startX + eventWidth/2
-				textY := float64(currentY) + (float64(row.height / 2))
-
-				sb.WriteString(fmt.Sprintf(`<text x="%f" y="%f" font-family="monospace" font-size="%d" dominant-baseline="middle" text-anchor="middle">%s</text>`,
-					textX, textY, textSize, escapeXML(event.Text)))
+				sb.WriteString(fmt.Sprintf(`<rect x="%f" y="%d" width="%f" height="%d" />`,
+					startX, currentY, eventWidth, row.height))
 				sb.WriteString("\n")
-			}
 
-			sb.WriteString("</g>\n")
+				// Draw event text
+				if event.Text != "" && eventWidth > float64(len(event.Text)*5) { // pixels per char
+					textSize := int(max(8, min(float64(row.height/3)+2, float64(eventWidth/4)+3)))
+					textX := startX + eventWidth/2
+					textY := float64(currentY) + (float64(row.height / 2))
 
-			if earliest.IsZero() {
-				currentDuration += event.Duration
+					sb.WriteString(fmt.Sprintf(`<text x="%f" y="%f" font-family="monospace" font-size="%d" dominant-baseline="middle" text-anchor="middle">%s</text>`,
+						textX, textY, textSize, escapeXML(event.Text)))
+					sb.WriteString("\n")
+				}
+
+				sb.WriteString("</g>\n")
+
+				if earliest.IsZero() {
+					currentDuration += event.Duration
+				}
+
+			case EventTypeEra:
+				eraHeight := svgHeight - currentY - marginBottom - (tickHeight * 2) + 2
+
+				if !earliest.IsZero() {
+					currentDuration = durationOffset(earliest, event.Time)
+				}
+
+				startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
+				eraWidth := float64(contentWidth) * float64(event.Duration) / float64(maxDuration)
+
+				sb.WriteString("<g")
+				if event.ID != "" {
+					sb.WriteString(fmt.Sprintf(` id="%s"`, event.ID))
+				}
+				if event.Class == "" {
+					sb.WriteString(` class="tl-era"`)
+				} else {
+					sb.WriteString(fmt.Sprintf(` class="tl-era %s"`, event.Class))
+				}
+				sb.WriteString(">\n")
+
+				// NOTE: using a 'hack' to set only the left & right borders: stroke-dasharray="0, <width>, <height>, 0"
+				sb.WriteString(fmt.Sprintf(`<rect x="%f" y="%d" width="%f" height="%d" stroke-dasharray="0,%[3]f,%[4]d,0" />`,
+					startX, currentY, eraWidth, eraHeight))
+				sb.WriteString("\n")
+
+				// Draw era text
+				if event.Text != "" && eraWidth > float64(len(event.Text)*5) { // pixels per char
+					textSize := int(max(8, min(float64(row.height/3)+2, float64(eraWidth/4)+3)))
+					textX := startX + eraWidth/2
+					textY := float64(currentY) + float64(row.height)/3
+
+					sb.WriteString(fmt.Sprintf(`<text x="%f" y="%f" font-family="monospace" font-size="%d" dominant-baseline="middle" text-anchor="middle">%s</text>`,
+						textX, textY, textSize, escapeXML(event.Text)))
+					sb.WriteString("\n")
+				}
+
+				sb.WriteString("</g>\n")
+
+				if earliest.IsZero() {
+					currentDuration += event.Duration
+				}
 			}
 		}
 
