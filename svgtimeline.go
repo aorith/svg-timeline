@@ -26,7 +26,7 @@ const (
 
 // Event represents a timeline event
 type Event struct {
-	Type     EventType
+	Type     EventType     // type of the event - affects how it is drawn on the timeline
 	ID       string        // unique HTML identifier
 	Class    string        // CSS class name
 	Text     string        // text displayed inside of the event rectangle if the event duration provides sufficient width
@@ -40,6 +40,11 @@ type Row struct {
 	height          int
 	separatorHeight int
 	events          []Event
+}
+
+// Timeline represents the entire timeline
+type Timeline struct {
+	rows []*Row
 }
 
 // TimelineConfig represents a timeline config
@@ -62,11 +67,6 @@ func DefaultTimelineConfig() TimelineConfig {
 	}
 }
 
-// Timeline represents the entire timeline
-type Timeline struct {
-	rows []*Row
-}
-
 // NewTimeline creates a new timeline
 func NewTimeline() *Timeline {
 	return &Timeline{
@@ -85,33 +85,24 @@ func (t *Timeline) AddRow(height int, separatorHeight int) *Row {
 	return row
 }
 
-// AddEvent adds an event to a row
-func (r *Row) AddEvent(e Event) {
-	r.events = append(r.events, e)
+// GetRows returns the timeline rows
+func (t *Timeline) GetRows() []*Row {
+	return t.rows
 }
 
-// getTotalDuration calculates the total duration for a row
-func (r *Row) getTotalDuration(earliest time.Time) time.Duration {
-	var total time.Duration
-	var maxByTime time.Duration
-
-	for _, event := range r.events {
-		total += event.Duration
-		if !earliest.IsZero() && !event.Time.IsZero() {
-			byTime := event.Time.Sub(earliest) + event.Duration
-			if byTime > maxByTime {
-				maxByTime = byTime
-			}
-		}
+// GetLastRow returns the last row
+func (t *Timeline) GetLastRow() *Row {
+	if len(t.rows) == 0 {
+		return nil
 	}
-	return max(total, maxByTime)
+	return t.rows[len(t.rows)-1]
 }
 
-// getMaxDuration returns the maximum duration across all rows
-func (t *Timeline) getMaxDuration(earliest time.Time) time.Duration {
+// MaxDuration returns the maximum duration across all rows
+func (t *Timeline) MaxDuration() time.Duration {
 	var m time.Duration
 	for _, row := range t.rows {
-		duration := row.getTotalDuration(earliest)
+		duration := row.TotalDuration(t.StartTime())
 		if duration > m {
 			m = duration
 		}
@@ -119,8 +110,8 @@ func (t *Timeline) getMaxDuration(earliest time.Time) time.Duration {
 	return m
 }
 
-// getTotalRowHeight calculates the total height of all rows including separators
-func (t *Timeline) getTotalRowHeight() int {
+// TotalRowHeight calculates the total height of all rows including separators
+func (t *Timeline) TotalRowHeight() int {
 	total := 0
 	for _, row := range t.rows {
 		total += row.height + row.separatorHeight
@@ -128,44 +119,35 @@ func (t *Timeline) getTotalRowHeight() int {
 	return total
 }
 
-// offsetsByTime is a helper to ensure Time consistency across events
-// it returns the earliest time of all events if Time is set on them
-func (t *Timeline) offsetsByTime() (time.Time, error) {
-	var hasTime, hasNoTime bool
+// StartTime returns the earliest time that is currently set on the timeline
+// given the existing rows and events
+func (t *Timeline) StartTime() time.Time {
 	var earliest time.Time
-
-	check := func(t time.Time) {
-		if t.IsZero() {
-			hasNoTime = true
-		} else {
-			hasTime = true
-			if earliest.IsZero() || t.Before(earliest) {
-				earliest = t
-			}
-		}
-	}
-
 	for _, r := range t.rows {
-		for _, e := range r.events {
-			check(e.Time)
+		rowStartTime := r.StartTime()
+		if earliest.IsZero() || rowStartTime.Before(earliest) {
+			earliest = rowStartTime
 		}
 	}
+	return earliest
+}
 
-	if hasTime && hasNoTime {
-		return earliest, fmt.Errorf("if 'Time' is set on any Event, it must be set on all of them")
+// EndTime returns the latest time that is currently set on the timeline
+// given the added rows and events (including their durations)
+func (t *Timeline) EndTime() time.Time {
+	var end time.Time
+	for _, r := range t.rows {
+		rowEndTime := r.EndTime()
+		if end.IsZero() || rowEndTime.After(end) {
+			end = rowEndTime
+		}
 	}
-
-	return earliest, nil
+	return end
 }
 
-// durationOffset is a helper function to obtain the duration offset between s and e
-func durationOffset(s, e time.Time) time.Duration {
-	return e.Sub(s)
-}
-
-// Generate creates the SVG string
+// Generate creates the timeline with the given config
 func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
-	earliest, err := t.offsetsByTime()
+	earliest, err := checkEvents(t)
 	if err != nil {
 		return "", err
 	}
@@ -190,8 +172,8 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 	marginBottom := cfg.Margins[2]
 	marginLeft := cfg.Margins[3]
 
-	maxDuration := t.getMaxDuration(earliest)
-	totalHeight := t.getTotalRowHeight()
+	maxDuration := t.MaxDuration()
+	totalHeight := t.TotalRowHeight()
 	svgHeight := totalHeight + marginTop + marginBottom + tickHeight + tickLabelMargin
 
 	contentWidth := cfg.Width - marginLeft - marginRight
@@ -234,7 +216,7 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 			switch event.Type {
 			case EventTypeTask:
 				if !earliest.IsZero() {
-					currentDuration = durationOffset(earliest, event.Time)
+					currentDuration = event.Time.Sub(earliest)
 				}
 
 				startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
@@ -280,7 +262,7 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 				eraHeight := svgHeight - currentY - marginBottom - (tickHeight * 2) + 2
 
 				if !earliest.IsZero() {
-					currentDuration = durationOffset(earliest, event.Time)
+					currentDuration = event.Time.Sub(earliest)
 				}
 
 				startX := float64(marginLeft) + float64(contentWidth)*float64(currentDuration)/float64(maxDuration)
@@ -355,6 +337,90 @@ func (t *Timeline) Generate(cfg TimelineConfig) (string, error) {
 
 	sb.WriteString("</svg>")
 	return sb.String(), nil
+}
+
+// AddEvent adds an event to a row
+func (r *Row) AddEvent(e Event) {
+	r.events = append(r.events, e)
+}
+
+// TotalDuration returns the total duration for a row
+func (r *Row) TotalDuration(earliest time.Time) time.Duration {
+	var total time.Duration
+	var maxByTime time.Duration
+
+	for _, event := range r.events {
+		total += event.Duration
+		if !earliest.IsZero() && !event.Time.IsZero() {
+			byTime := event.Time.Sub(earliest) + event.Duration
+			if byTime > maxByTime {
+				maxByTime = byTime
+			}
+		}
+	}
+	return max(total, maxByTime)
+}
+
+// StartTime returns the earliest time that is currently set on the row
+// given the existing events
+func (r *Row) StartTime() time.Time {
+	var earliest time.Time
+	for _, e := range r.events {
+		if e.Time.IsZero() {
+			continue
+		}
+		if earliest.IsZero() || e.Time.Before(earliest) {
+			earliest = e.Time
+		}
+	}
+	return earliest
+}
+
+// EndTime returns the latest time that is currently set on the row
+// given the existing events (including their durations)
+func (r *Row) EndTime() time.Time {
+	var end time.Time
+	for _, e := range r.events {
+		if e.Time.IsZero() {
+			continue
+		}
+		eventEnd := e.Time.Add(e.Duration)
+		if end.IsZero() || eventEnd.After(end) {
+			end = eventEnd
+		}
+	}
+	return end
+}
+
+// checkEvents is a helper to ensure consistency across events
+// - if any event sets its Time, all events must set it and the earliest time is returned
+// - at least one event must have a duration greater than 0
+func checkEvents(t *Timeline) (time.Time, error) {
+	var hasTime, hasNoTime bool
+	var earliest time.Time
+	var duration time.Duration
+
+	for _, r := range t.rows {
+		for _, e := range r.events {
+			duration += e.Duration
+			if e.Time.IsZero() {
+				hasNoTime = true
+			} else {
+				hasTime = true
+			}
+		}
+	}
+
+	if hasTime && hasNoTime {
+		return earliest, fmt.Errorf("if 'Time' is set on any Event, it must be set on all of them")
+	}
+
+	if duration == 0 {
+		return earliest, fmt.Errorf("none of the events has a positive duration")
+	}
+
+	earliest = t.StartTime()
+	return earliest, nil
 }
 
 // escapeXML escapes special XML characters
