@@ -129,6 +129,14 @@ func (t *Timeline) GetRows() []*Row {
 	return t.rows
 }
 
+// GetRowByIndex returns the row at the index or nil if not found
+func (t *Timeline) GetRowByIndex(i int) *Row {
+	if i >= len(t.rows) {
+		return nil
+	}
+	return t.rows[i]
+}
+
 // GetLastRow returns the last row
 func (t *Timeline) GetLastRow() *Row {
 	if len(t.rows) == 0 {
