@@ -46,40 +46,40 @@
 </style>
 </defs>
 <rect class="tl-bg" x="0" y="0" width="1000" height="225" fill="none" /><g class="tl-era ctl-request">
-<rect x="10.000000" y="15" width="738.461538" height="187" stroke-dasharray="0,738.461538,187,0" />
-<text x="379.230769" y="25.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">262_req</text>
+<rect x="10.000000" y="15" width="738.461538" height="180" stroke-dasharray="0,738.461538,180,0" />
+<text x="379.230769" y="25.000000" font-family="monospace" font-size="14px" dominant-baseline="middle" text-anchor="middle">262_req</text>
 </g>
 <g class="tl-era ctl-bereq">
-<rect x="10.000000" y="50" width="295.384615" height="152" stroke-dasharray="0,295.384615,152,0" />
-<text x="157.692308" y="60.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">32783_bereq</text>
+<rect x="10.000000" y="50" width="295.384615" height="145" stroke-dasharray="0,295.384615,145,0" />
+<text x="157.692308" y="60.000000" font-family="monospace" font-size="14px" dominant-baseline="middle" text-anchor="middle">32783_bereq</text>
 </g>
 <g class="tl-event ctl-e-long">
 <rect x="10.000000" y="85" width="738.461538" height="30" />
-<text x="379.230769" y="100.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">Long</text>
+<text x="379.230769" y="100.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Long</text>
 </g>
 <g class="tl-event ctl-e-long">
 <rect x="748.461538" y="85" width="221.538462" height="30" />
-<text x="859.230769" y="100.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">Short</text>
+<text x="859.230769" y="100.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Short</text>
 </g>
 <g class="tl-event ctl-e-fetch">
 <rect x="10.000000" y="120" width="73.846154" height="30" />
-<text x="46.923077" y="135.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">Fetch</text>
+<text x="46.923077" y="135.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Fetch</text>
 </g>
 <g class="tl-event ctl-e-process">
 <rect x="83.846154" y="120" width="147.692308" height="30" />
-<text x="157.692308" y="135.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">Process</text>
+<text x="157.692308" y="135.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Process</text>
 </g>
 <g class="tl-event ctl-e-beresp">
 <rect x="10.000000" y="155" width="147.692308" height="30" />
-<text x="83.846154" y="170.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">Beresp</text>
+<text x="83.846154" y="170.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Beresp</text>
 </g>
 <g class="tl-event ctl-e-berespbody">
 <rect x="157.692308" y="155" width="221.538462" height="30" />
-<text x="268.461538" y="170.000000" font-family="monospace" font-size="12" dominant-baseline="middle" text-anchor="middle">BerespBody</text>
+<text x="268.461538" y="170.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">BerespBody</text>
 </g>
 <line class="tl-axis" x1="10" y1="195" x2="970" y2="195"/>
 <g class="tl-ticks">
-<line x1="10.000000" y1="190" x2="10.000000" y2="200"/>
+<line x1="10.000000" y1="15" x2="10.000000" y2="200"/>
 <text x="10.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">0s</text>
 <line x1="130.000000" y1="190" x2="130.000000" y2="200"/>
 <text x="130.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">1.63s</text>
@@ -95,7 +95,7 @@
 <text x="730.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">9.75s</text>
 <line x1="850.000000" y1="190" x2="850.000000" y2="200"/>
 <text x="850.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">11.38s</text>
-<line x1="970.000000" y1="190" x2="970.000000" y2="200"/>
+<line x1="970.000000" y1="15" x2="970.000000" y2="200"/>
 <text x="970.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">13s</text>
 </g>
 </svg>

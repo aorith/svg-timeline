@@ -256,8 +256,12 @@ func (t *Timeline) Generate() (string, error) {
 			x := float64(t.marginLeft) + float64(t.contentWidth)*float64(currentDuration)/float64(t.maxDuration)
 
 			// Tick mark
+			topY := timelineY - t.tickHeight
+			if i == 0 || i == t.numTicks {
+				topY = t.marginTop
+			}
 			sb.WriteString(fmt.Sprintf(`<line x1="%f" y1="%d" x2="%f" y2="%d"/>`,
-				x, timelineY-t.tickHeight, x, timelineY+t.tickHeight))
+				x, topY, x, timelineY+t.tickHeight))
 			sb.WriteString("\n")
 
 			// Tick label
@@ -324,7 +328,7 @@ func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeig
 	var textYOffset float64
 
 	if event.Type == EventTypeEra {
-		height = t.svgHeight - currentY - t.marginBottom - (t.tickHeight * 2) + 2
+		height = t.svgHeight - currentY - t.marginBottom - (t.tickHeight * 3)
 		strokeDashArray = fmt.Sprintf(` stroke-dasharray="0,%f,%d,0"`, eventWidth, height)
 		textYOffset = float64(rowHeight) / 3
 	} else {
@@ -357,14 +361,23 @@ func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeig
 	sb.WriteString("\n")
 
 	// Text
-	if event.Text != "" && eventWidth > float64(len(event.Text)*5) {
-		textSize := int(max(8, min(float64(rowHeight/3)+2, float64(eventWidth/4)+3)))
-		textX := startX + eventWidth/2
-		textY := float64(currentY) + textYOffset
+	const textWidthFactor = 0.7
+	if event.Text != "" {
+		textSize := int(min(
+			float64(rowHeight/2),
+			eventWidth/(float64(len(event.Text))*textWidthFactor),
+		))
+		if event.Type == EventTypeEra {
+			textSize -= 1
+		}
+		if textSize >= 3 {
+			textX := startX + eventWidth/2
+			textY := float64(currentY) + textYOffset
 
-		fmt.Fprintf(sb, `<text x="%f" y="%f" font-family="monospace" font-size="%d" dominant-baseline="middle" text-anchor="middle">%s</text>`,
-			textX, textY, textSize, escapeXML(event.Text))
-		sb.WriteString("\n")
+			fmt.Fprintf(sb, `<text x="%f" y="%f" font-family="monospace" font-size="%dpx" dominant-baseline="middle" text-anchor="middle">%s</text>`,
+				textX, textY, textSize, escapeXML(event.Text))
+			sb.WriteString("\n")
+		}
 	}
 
 	sb.WriteString("</g>\n")
