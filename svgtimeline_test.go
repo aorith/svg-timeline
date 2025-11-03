@@ -2,6 +2,8 @@ package svgtimeline_test
 
 import (
 	_ "embed"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -112,7 +114,7 @@ func TestNewTimeline(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tl := svgtimeline.NewTimeline()
 			for _, tr := range tt.rows {
@@ -121,9 +123,13 @@ func TestNewTimeline(t *testing.T) {
 					row.AddEvent(event)
 				}
 			}
-			svg, _ := tl.Generate(svgtimeline.DefaultTimelineConfig())
+			svg, _ := tl.Generate()
 			if svg != tt.want {
-				t.Errorf("'%s'\n got =\n%v\n want =\n%v", tt.name, svg, tt.want)
+				gotFn := fmt.Sprintf("%d_got_test.svg", i)
+				wantFn := fmt.Sprintf("%d_want_test.svg", i)
+				t.Errorf(`[%s] failed, resulting svg files saved as "%s" and "%s"`, tt.name, gotFn, wantFn)
+				_ = os.WriteFile(gotFn, []byte(svg), 0644)
+				_ = os.WriteFile(wantFn, []byte(tt.want), 0644)
 			}
 		})
 	}
