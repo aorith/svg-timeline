@@ -286,6 +286,9 @@ func (t *Timeline) setup() error {
 
 	for _, r := range t.rows {
 		for _, e := range r.events {
+			if e.Duration < 0 {
+				return fmt.Errorf("duration of events cannot be negative")
+			}
 			duration += e.Duration
 			if e.Time.IsZero() {
 				hasNoTime = true
@@ -296,7 +299,7 @@ func (t *Timeline) setup() error {
 	}
 
 	if hasTime && hasNoTime {
-		return fmt.Errorf("if 'Time' is set on any Event, it must be set on all of them")
+		return fmt.Errorf(`when "Time" is set on any Event, it must be set on all of them`)
 	}
 
 	if duration == 0 {

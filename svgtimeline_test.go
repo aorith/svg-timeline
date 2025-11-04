@@ -92,6 +92,23 @@ func TestNewTimeline(t *testing.T) {
 		},
 	}
 
+	rows4 := []testRow{
+		{
+			events: []svgtimeline.Event{
+				{Class: "ctl-e-long", Text: "Long", Duration: 10 * time.Second},
+				{Class: "ctl-e-long", Text: "Short", Duration: -3 * time.Second},
+			},
+		},
+	}
+
+	rows5 := []testRow{
+		{
+			events: []svgtimeline.Event{
+				{Class: "ctl-e-long", Text: "Long", Duration: 0},
+			},
+		},
+	}
+
 	tests := []struct {
 		name string
 		rows []testRow
@@ -112,6 +129,21 @@ func TestNewTimeline(t *testing.T) {
 			rows: rows3,
 			want: "",
 		},
+		{
+			name: "Timeline with negative duration",
+			rows: rows4,
+			want: "",
+		},
+		{
+			name: "Timeline with 0 duration",
+			rows: rows5,
+			want: "",
+		},
+		{
+			name: "Timeline without events",
+			rows: []testRow{},
+			want: "",
+		},
 	}
 
 	for i, tt := range tests {
@@ -123,7 +155,10 @@ func TestNewTimeline(t *testing.T) {
 					row.AddEvent(event)
 				}
 			}
-			svg, _ := tl.Generate()
+			svg, err := tl.Generate()
+			if err != nil {
+				fmt.Printf("%v\n", err)
+			}
 			if svg != tt.want {
 				gotFn := fmt.Sprintf("%d_got_test.svg", i)
 				wantFn := fmt.Sprintf("%d_want_test.svg", i)
