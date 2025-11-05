@@ -1,0 +1,130 @@
+<svg id="timeline-0" xmlns="http://www.w3.org/2000/svg" width="1000" height="164" viewBox="0 0 1000 164">
+<defs>
+
+<style>
+/* Default timeline classes */
+
+.tl-bg {
+  fill: #ffffff;
+}
+
+.tl-event {
+  cursor: pointer;
+}
+
+.tl-event rect {
+  fill: rgba(115, 105, 250, 0.8);
+}
+
+.tl-event:hover rect {
+  fill: rgba(120, 110, 255, 1);
+  stroke: #000000;
+  stroke-width: 1;
+}
+
+.tl-event text {
+  fill: #ffffff;
+}
+
+.tl-era rect {
+  fill: rgba(200, 240, 240, 0.35);
+  stroke: rgba(200, 240, 240, 0.95);
+  stroke-width: 1;
+}
+
+.tl-era text {
+  fill: #000000;
+}
+
+.tl-axis,
+.tl-ticks line {
+  stroke: #333333;
+  stroke-width: 2;
+}
+
+.tl-ticks text {
+  fill: #333333;
+}
+
+/* Custom CSS classes */
+.my-era rect {
+  fill: rgba(252, 186, 3, 0.15);
+  stroke: rgba(252, 186, 3, 0.5);
+}
+.my-era rect:hover {
+  fill: rgba(252, 186, 3, 0.3);
+  stroke-width: 1;
+}
+
+.my-era-2 rect {
+  fill: rgba(252, 3, 3, 0.15);
+  stroke: rgba(252, 3, 3, 0.5);
+}
+.my-era-2 rect:hover {
+  fill: rgba(252, 3, 3, 0.3);
+  stroke-width: 1;
+}
+
+.download rect {
+  fill: rgba(212, 136, 3, 0.85);
+}
+
+.parse rect {
+  fill: rgba(3, 3, 212, 0.85);
+}
+
+.compress rect {
+  fill: rgba(3, 52, 212, 0.85);
+}
+
+.move rect {
+  fill: rgba(3, 113, 212, 0.85);
+}
+</style>
+</defs>
+<rect class="tl-bg" x="0" y="0" width="1000" height="164" fill="none" /><g id="era-1" class="tl-era my-era">
+<title>Process (3s)</title><rect x="10.000000" y="15" width="553.846154" height="119" stroke-dasharray="0,553.846154,119,0" />
+<text x="286.923077" y="21.666667" font-family="monospace" font-size="9px" dominant-baseline="middle" text-anchor="middle">Process</text>
+</g>
+<g class="tl-event download">
+<title>download (2s)</title><rect x="10.000000" y="37" width="369.230769" height="30" />
+<text x="194.615385" y="52.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">download</text>
+</g>
+<g class="tl-event parse">
+<title>parse (1s)</title><rect x="379.230769" y="37" width="184.615385" height="30" />
+<text x="471.538462" y="52.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">parse</text>
+</g>
+<g class="tl-era my-era-2">
+<title>Save (2s)</title><rect x="600.769231" y="72" width="369.230769" height="62" stroke-dasharray="0,369.230769,62,0" />
+<text x="785.384615" y="78.666667" font-family="monospace" font-size="9px" dominant-baseline="middle" text-anchor="middle">Save</text>
+</g>
+<g class="tl-event compress">
+<title>compress (1.5s)</title><rect x="600.769231" y="94" width="276.923077" height="30" />
+<text x="739.230769" y="109.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">compress</text>
+</g>
+<g class="tl-event move">
+<title>move (.5s)</title><rect x="877.692308" y="94" width="92.307692" height="30" />
+<text x="923.846154" y="109.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">move</text>
+</g>
+<line class="tl-axis" x1="10" y1="134" x2="970" y2="134"/>
+<g class="tl-ticks">
+<line x1="10.000000" y1="15" x2="10.000000" y2="139"/>
+<text x="10.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">0s</text>
+<line x1="130.000000" y1="129" x2="130.000000" y2="139"/>
+<text x="130.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">650ms</text>
+<line x1="250.000000" y1="129" x2="250.000000" y2="139"/>
+<text x="250.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">1.3s</text>
+<line x1="370.000000" y1="129" x2="370.000000" y2="139"/>
+<text x="370.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">1.95s</text>
+<line x1="490.000000" y1="129" x2="490.000000" y2="139"/>
+<text x="490.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">2.6s</text>
+<line x1="610.000000" y1="129" x2="610.000000" y2="139"/>
+<text x="610.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">3.25s</text>
+<line x1="730.000000" y1="129" x2="730.000000" y2="139"/>
+<text x="730.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">3.9s</text>
+<line x1="850.000000" y1="129" x2="850.000000" y2="139"/>
+<text x="850.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">4.55s</text>
+<line x1="970.000000" y1="15" x2="970.000000" y2="139"/>
+<text x="970.000000" y="154" font-family="monospace" font-size="12" text-anchor="middle">5.2s</text>
+</g>
+</svg>

@@ -1,0 +1,78 @@
+/* Default timeline classes */
+
+.tl-bg {
+  fill: #ffffff;
+}
+
+.tl-event {
+  cursor: pointer;
+}
+
+.tl-event rect {
+  fill: rgba(115, 105, 250, 0.8);
+}
+
+.tl-event:hover rect {
+  fill: rgba(120, 110, 255, 1);
+  stroke: #000000;
+  stroke-width: 1;
+}
+
+.tl-event text {
+  fill: #ffffff;
+}
+
+.tl-era rect {
+  fill: rgba(200, 240, 240, 0.35);
+  stroke: rgba(200, 240, 240, 0.95);
+  stroke-width: 1;
+}
+
+.tl-era text {
+  fill: #000000;
+}
+
+.tl-axis,
+.tl-ticks line {
+  stroke: #333333;
+  stroke-width: 2;
+}
+
+.tl-ticks text {
+  fill: #333333;
+}
+
+/* Custom CSS classes */
+.my-era rect {
+  fill: rgba(252, 186, 3, 0.15);
+  stroke: rgba(252, 186, 3, 0.5);
+}
+.my-era rect:hover {
+  fill: rgba(252, 186, 3, 0.3);
+  stroke-width: 1;
+}
+
+.my-era-2 rect {
+  fill: rgba(252, 3, 3, 0.15);
+  stroke: rgba(252, 3, 3, 0.5);
+}
+.my-era-2 rect:hover {
+  fill: rgba(252, 3, 3, 0.3);
+  stroke-width: 1;
+}
+
+.download rect {
+  fill: rgba(212, 136, 3, 0.85);
+}
+
+.parse rect {
+  fill: rgba(3, 3, 212, 0.85);
+}
+
+.compress rect {
+  fill: rgba(3, 52, 212, 0.85);
+}
+
+.move rect {
+  fill: rgba(3, 113, 212, 0.85);
+}
