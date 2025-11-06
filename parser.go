@@ -183,12 +183,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 		tl.SetStyle(cssStyle)
 	}
 
-	svg, err := tl.Generate()
-	if err != nil {
-		return "", err
-	}
-
-	return svg, nil
+	return tl.Generate()
 }
 
 // parseIntDefault is a helper function to convert a string to int
