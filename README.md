@@ -2,7 +2,7 @@
 
 Small go library and CLI tool to generate timeline SVGs based on the duration of events.
 
-![](./cmd/svgtimeline/examples/complete.svg)
+![](./cmd/cli/examples/complete.svg)
 
 ## Usage
 
@@ -39,15 +39,14 @@ This will print a basic SVG that you can save and open in the browser.
 
 ### Using the CLI
 
-Check the command at [cmd/svgtimeline](cmd/svgtimeline).
+Check the command at [cmd/cli](cmd/cli).
 
-See [cmd/svgtimeline/examples](cmd/svgtimeline/examples) for config examples.
+See [cmd/cli/examples](cmd/cli/examples) for config examples.
 
 ```sh
-# Install the CLI tool or run it from cmd/svgtimeline
-go install github.com/aorith/svg-timeline/cmd/svgtimeline@latest
+# Install the CLI tool or run it from cmd/cli
+go install github.com/aorith/svg-timeline/cmd/cli@latest
 
 # Generate a timeline from a config file
 $ svgtimeline -i complete.cfg -s style.css -o /tmp/timeline.svg
 ```
-
