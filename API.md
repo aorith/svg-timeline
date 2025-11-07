@@ -26,12 +26,14 @@ import "github.com/aorith/svg-timeline"
   - [func \(t \*Timeline\) GetRowByIndex\(i int\) \*Row](<#Timeline.GetRowByIndex>)
   - [func \(t \*Timeline\) GetRows\(\) \[\]\*Row](<#Timeline.GetRows>)
   - [func \(t \*Timeline\) MaxDuration\(\) time.Duration](<#Timeline.MaxDuration>)
+  - [func \(t \*Timeline\) SetHeight\(height string\)](<#Timeline.SetHeight>)
   - [func \(t \*Timeline\) SetID\(id string\)](<#Timeline.SetID>)
   - [func \(t \*Timeline\) SetMargins\(top, right, bottom, left int\)](<#Timeline.SetMargins>)
   - [func \(t \*Timeline\) SetNumTicks\(n int\)](<#Timeline.SetNumTicks>)
+  - [func \(t \*Timeline\) SetPrecision\(p int\)](<#Timeline.SetPrecision>)
   - [func \(t \*Timeline\) SetStyle\(s string\)](<#Timeline.SetStyle>)
   - [func \(t \*Timeline\) SetTickHeight\(h int\)](<#Timeline.SetTickHeight>)
-  - [func \(t \*Timeline\) SetWidth\(w int\)](<#Timeline.SetWidth>)
+  - [func \(t \*Timeline\) SetWidth\(width string\)](<#Timeline.SetWidth>)
   - [func \(t \*Timeline\) StartTime\(\) time.Time](<#Timeline.StartTime>)
   - [func \(t \*Timeline\) TotalRowHeight\(\) int](<#Timeline.TotalRowHeight>)
 
@@ -54,7 +56,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error)
 GenerateFromCFG generates the timeline by parsing a config file with an optional css style
 
 <a name="Event"></a>
-## type [Event](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L28-L36>)
+## type [Event](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L29-L37>)
 
 Event represents a timeline event
 
@@ -71,7 +73,7 @@ type Event struct {
 ```
 
 <a name="EventType"></a>
-## type [EventType](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L20>)
+## type [EventType](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L21>)
 
 
 
@@ -89,7 +91,7 @@ const (
 ```
 
 <a name="Row"></a>
-## type [Row](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L39-L43>)
+## type [Row](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L40-L44>)
 
 Row represents a row in the timeline
 
@@ -100,7 +102,7 @@ type Row struct {
 ```
 
 <a name="Row.AddEvent"></a>
-### func \(\*Row\) [AddEvent](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L396>)
+### func \(\*Row\) [AddEvent](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L422>)
 
 ```go
 func (r *Row) AddEvent(e Event)
@@ -109,7 +111,7 @@ func (r *Row) AddEvent(e Event)
 AddEvent adds an event to a row
 
 <a name="Row.EndTime"></a>
-### func \(\*Row\) [EndTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L434>)
+### func \(\*Row\) [EndTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L460>)
 
 ```go
 func (r *Row) EndTime() time.Time
@@ -118,7 +120,7 @@ func (r *Row) EndTime() time.Time
 EndTime returns the latest time that is currently set on the row given the existing events \(including their durations\)
 
 <a name="Row.StartTime"></a>
-### func \(\*Row\) [StartTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L419>)
+### func \(\*Row\) [StartTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L445>)
 
 ```go
 func (r *Row) StartTime() time.Time
@@ -127,7 +129,7 @@ func (r *Row) StartTime() time.Time
 StartTime returns the earliest time that is currently set on the row given the existing events
 
 <a name="Row.TotalDuration"></a>
-### func \(\*Row\) [TotalDuration](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L401>)
+### func \(\*Row\) [TotalDuration](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L427>)
 
 ```go
 func (r *Row) TotalDuration(earliest time.Time) time.Duration
@@ -136,7 +138,7 @@ func (r *Row) TotalDuration(earliest time.Time) time.Duration
 TotalDuration returns the total duration for a row
 
 <a name="Timeline"></a>
-## type [Timeline](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L46-L65>)
+## type [Timeline](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L47-L69>)
 
 Timeline represents the entire timeline
 
@@ -147,7 +149,7 @@ type Timeline struct {
 ```
 
 <a name="NewTimeline"></a>
-### func [NewTimeline](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L68>)
+### func [NewTimeline](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L72>)
 
 ```go
 func NewTimeline() *Timeline
@@ -156,7 +158,7 @@ func NewTimeline() *Timeline
 NewTimeline creates a new timeline with default config
 
 <a name="Timeline.AddRow"></a>
-### func \(\*Timeline\) [AddRow](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L117>)
+### func \(\*Timeline\) [AddRow](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L138>)
 
 ```go
 func (t *Timeline) AddRow(height int, separatorHeight int) *Row
@@ -165,7 +167,7 @@ func (t *Timeline) AddRow(height int, separatorHeight int) *Row
 AddRow adds a new row to the timeline
 
 <a name="Timeline.EndTime"></a>
-### func \(\*Timeline\) [EndTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L184>)
+### func \(\*Timeline\) [EndTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L205>)
 
 ```go
 func (t *Timeline) EndTime() time.Time
@@ -174,7 +176,7 @@ func (t *Timeline) EndTime() time.Time
 EndTime returns the latest time that is currently set on the timeline given the added rows and events \(including their durations\)
 
 <a name="Timeline.Generate"></a>
-### func \(\*Timeline\) [Generate](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L196>)
+### func \(\*Timeline\) [Generate](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L217>)
 
 ```go
 func (t *Timeline) Generate() (string, error)
@@ -183,7 +185,7 @@ func (t *Timeline) Generate() (string, error)
 Generate generates the timeline SVG with the current configuration
 
 <a name="Timeline.GetLastRow"></a>
-### func \(\*Timeline\) [GetLastRow](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L141>)
+### func \(\*Timeline\) [GetLastRow](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L162>)
 
 ```go
 func (t *Timeline) GetLastRow() *Row
@@ -192,7 +194,7 @@ func (t *Timeline) GetLastRow() *Row
 GetLastRow returns the last row
 
 <a name="Timeline.GetRowByIndex"></a>
-### func \(\*Timeline\) [GetRowByIndex](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L133>)
+### func \(\*Timeline\) [GetRowByIndex](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L154>)
 
 ```go
 func (t *Timeline) GetRowByIndex(i int) *Row
@@ -201,7 +203,7 @@ func (t *Timeline) GetRowByIndex(i int) *Row
 GetRowByIndex returns the row at the index or nil if not found
 
 <a name="Timeline.GetRows"></a>
-### func \(\*Timeline\) [GetRows](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L128>)
+### func \(\*Timeline\) [GetRows](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L149>)
 
 ```go
 func (t *Timeline) GetRows() []*Row
@@ -210,7 +212,7 @@ func (t *Timeline) GetRows() []*Row
 GetRows returns the timeline rows
 
 <a name="Timeline.MaxDuration"></a>
-### func \(\*Timeline\) [MaxDuration](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L149>)
+### func \(\*Timeline\) [MaxDuration](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L170>)
 
 ```go
 func (t *Timeline) MaxDuration() time.Duration
@@ -218,8 +220,19 @@ func (t *Timeline) MaxDuration() time.Duration
 
 MaxDuration returns the maximum duration across all rows
 
+<a name="Timeline.SetHeight"></a>
+### func \(\*Timeline\) [SetHeight](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L110>)
+
+```go
+func (t *Timeline) SetHeight(height string)
+```
+
+SetHeight sets the SVG height.
+
+Any CSS value for size is valid, including pixels or percentages.
+
 <a name="Timeline.SetID"></a>
-### func \(\*Timeline\) [SetID](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L84>)
+### func \(\*Timeline\) [SetID](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L89>)
 
 ```go
 func (t *Timeline) SetID(id string)
@@ -228,7 +241,7 @@ func (t *Timeline) SetID(id string)
 SetID sets the unique HTML identifier of the timeline SVG
 
 <a name="Timeline.SetMargins"></a>
-### func \(\*Timeline\) [SetMargins](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L104>)
+### func \(\*Timeline\) [SetMargins](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L125>)
 
 ```go
 func (t *Timeline) SetMargins(top, right, bottom, left int)
@@ -237,7 +250,7 @@ func (t *Timeline) SetMargins(top, right, bottom, left int)
 SetMargins sets the margins of the timeline inside of the SVG
 
 <a name="Timeline.SetNumTicks"></a>
-### func \(\*Timeline\) [SetNumTicks](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L94>)
+### func \(\*Timeline\) [SetNumTicks](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L115>)
 
 ```go
 func (t *Timeline) SetNumTicks(n int)
@@ -245,8 +258,19 @@ func (t *Timeline) SetNumTicks(n int)
 
 SetNumTicks sets the number of ticks for the timeline
 
+<a name="Timeline.SetPrecision"></a>
+### func \(\*Timeline\) [SetPrecision](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L96>)
+
+```go
+func (t *Timeline) SetPrecision(p int)
+```
+
+SetPrecision sets the precision of the timeline
+
+Higher precision creates wider timelines \(default: 1000\).
+
 <a name="Timeline.SetStyle"></a>
-### func \(\*Timeline\) [SetStyle](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L112>)
+### func \(\*Timeline\) [SetStyle](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L133>)
 
 ```go
 func (t *Timeline) SetStyle(s string)
@@ -255,7 +279,7 @@ func (t *Timeline) SetStyle(s string)
 SetStyle sets the CSS style for the timeline \(for reference use the value of DefaultStyle\)
 
 <a name="Timeline.SetTickHeight"></a>
-### func \(\*Timeline\) [SetTickHeight](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L99>)
+### func \(\*Timeline\) [SetTickHeight](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L120>)
 
 ```go
 func (t *Timeline) SetTickHeight(h int)
@@ -264,16 +288,18 @@ func (t *Timeline) SetTickHeight(h int)
 SetTickHeight sets the height of the timeline ticks
 
 <a name="Timeline.SetWidth"></a>
-### func \(\*Timeline\) [SetWidth](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L89>)
+### func \(\*Timeline\) [SetWidth](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L103>)
 
 ```go
-func (t *Timeline) SetWidth(w int)
+func (t *Timeline) SetWidth(width string)
 ```
 
-SetWidth sets the width of the timeline
+SetWidth sets the SVG width.
+
+Any CSS value for size is valid, including pixels or percentages.
 
 <a name="Timeline.StartTime"></a>
-### func \(\*Timeline\) [StartTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L171>)
+### func \(\*Timeline\) [StartTime](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L192>)
 
 ```go
 func (t *Timeline) StartTime() time.Time
@@ -282,7 +308,7 @@ func (t *Timeline) StartTime() time.Time
 StartTime returns the earliest time that is currently set on the timeline given the existing rows and events
 
 <a name="Timeline.TotalRowHeight"></a>
-### func \(\*Timeline\) [TotalRowHeight](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L161>)
+### func \(\*Timeline\) [TotalRowHeight](<https://github.com/aorith/svg-timeline/blob/main/svgtimeline.go#L182>)
 
 ```go
 func (t *Timeline) TotalRowHeight() int
