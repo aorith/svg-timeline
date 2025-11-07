@@ -87,15 +87,15 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 				switch key {
 
 				// Single digit properties
-				case "width", "num_ticks", "tick_height", "margin_top", "margin_bottom", "margin_left", "margin_right":
+				case "precision", "num_ticks", "tick_height", "margin_top", "margin_bottom", "margin_left", "margin_right":
 					x, err2 := strconv.Atoi(val)
 					if err2 != nil {
 						return "", fmt.Errorf("error at line %d: %v", lineNum, err2)
 					}
 
 					switch key {
-					case "width":
-						tl.SetWidth(x)
+					case "precision":
+						tl.SetPrecision(x)
 					case "num_ticks":
 						tl.SetNumTicks(x)
 					case "tick_height":
@@ -116,6 +116,10 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 
 				case "id":
 					tl.SetID(val)
+				case "width":
+					tl.SetWidth(val)
+				case "height":
+					tl.SetHeight(val)
 
 				default:
 					return "", fmt.Errorf("unknown property '%s' at line %d", key, lineNum)

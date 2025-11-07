@@ -5,6 +5,7 @@ package svgtimeline
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,21 +48,24 @@ type Timeline struct {
 	rows []*Row
 
 	id           string
-	width        int
+	width        string
+	height       string
+	precision    float64
 	numTicks     int
 	tickHeight   int
 	marginTop    int
 	marginBottom int
-	marginLeft   int
-	marginRight  int
+	marginLeft   float64
+	marginRight  float64
 	style        string
 
 	earliest        time.Time // Earliest time within the timeline
 	maxDuration     time.Duration
 	tickLabelMargin int
+	contentHeight   int
 	totalHeight     int
-	svgHeight       int
-	contentWidth    int
+	contentWidth    float64
+	totalWidth      float64
 }
 
 // NewTimeline creates a new timeline with default config
@@ -69,7 +73,8 @@ func NewTimeline() *Timeline {
 	return &Timeline{
 		rows:         make([]*Row, 0),
 		id:           "",
-		width:        1000,
+		width:        "100%",
+		precision:    float64(1000),
 		numTicks:     8,
 		tickHeight:   5,
 		marginTop:    15,
@@ -85,9 +90,25 @@ func (t *Timeline) SetID(id string) {
 	t.id = id
 }
 
-// SetWidth sets the width of the timeline
-func (t *Timeline) SetWidth(w int) {
-	t.width = w
+// SetPrecision sets the precision of the timeline
+//
+// Higher precision creates wider timelines (default: 1000).
+func (t *Timeline) SetPrecision(p int) {
+	t.precision = float64(p)
+}
+
+// SetWidth sets the SVG width.
+//
+// Any CSS value for size is valid, including pixels or percentages.
+func (t *Timeline) SetWidth(width string) {
+	t.width = width
+}
+
+// SetHeight sets the SVG height.
+//
+// Any CSS value for size is valid, including pixels or percentages.
+func (t *Timeline) SetHeight(height string) {
+	t.height = height
 }
 
 // SetNumTicks sets the number of ticks for the timeline
@@ -104,8 +125,8 @@ func (t *Timeline) SetTickHeight(h int) {
 func (t *Timeline) SetMargins(top, right, bottom, left int) {
 	t.marginTop = top
 	t.marginBottom = bottom
-	t.marginLeft = left
-	t.marginRight = right
+	t.marginLeft = float64(left)
+	t.marginRight = float64(right)
 }
 
 // SetStyle sets the CSS style for the timeline (for reference use the value of DefaultStyle)
@@ -207,8 +228,8 @@ func (t *Timeline) Generate() (string, error) {
 		sb.WriteString(fmt.Sprintf(` id="%s"`, escapeXML(t.id)))
 	}
 	sb.WriteString(fmt.Sprintf(
-		` xmlns="http://www.w3.org/2000/svg" width="%[1]d" height="%[2]d" viewBox="0 0 %[1]d %[2]d">`,
-		t.width, t.svgHeight,
+		` xmlns="http://www.w3.org/2000/svg" width="%s" height="%s" viewBox="0 0 %f %f">`,
+		t.width, t.height, t.totalWidth, float64(t.totalHeight),
 	))
 	sb.WriteString("\n")
 
@@ -220,8 +241,8 @@ func (t *Timeline) Generate() (string, error) {
 	sb.WriteString("</defs>\n")
 
 	// Background
-	sb.WriteString(fmt.Sprintf(`<rect class="tl-bg" x="0" y="0" width="%d" height="%d" fill="none" />`,
-		t.width, t.svgHeight))
+	sb.WriteString(fmt.Sprintf(`<rect class="tl-bg" x="0" y="0" width="%f" height="%d" fill="none" />`,
+		t.totalWidth, t.totalHeight))
 
 	// Draw rows
 	currentY := t.marginTop
@@ -240,8 +261,8 @@ func (t *Timeline) Generate() (string, error) {
 	}
 
 	// Draw timeline axis
-	timelineY := t.marginTop + t.totalHeight + t.tickHeight
-	sb.WriteString(fmt.Sprintf(`<line class="tl-axis" x1="%d" y1="%d" x2="%d" y2="%d"/>`,
+	timelineY := t.marginTop + t.contentHeight + t.tickHeight
+	sb.WriteString(fmt.Sprintf(`<line class="tl-axis" x1="%f" y1="%d" x2="%f" y2="%d"/>`,
 		t.marginLeft, timelineY, t.marginLeft+t.contentWidth, timelineY))
 	sb.WriteString("\n")
 
@@ -309,10 +330,15 @@ func (t *Timeline) setup() error {
 	// Initialize variables
 	t.tickLabelMargin = 15
 	t.maxDuration = t.MaxDuration()
-	t.totalHeight = t.TotalRowHeight()
+	t.contentHeight = t.TotalRowHeight()
 	t.earliest = t.StartTime()
-	t.svgHeight = t.totalHeight + t.marginTop + t.marginBottom + t.tickHeight + t.tickLabelMargin
-	t.contentWidth = t.width - t.marginLeft - t.marginRight
+	t.totalHeight = t.contentHeight + t.marginTop + t.marginBottom + t.tickHeight + t.tickLabelMargin
+	if t.height == "" {
+		t.height = strconv.Itoa(t.totalHeight)
+	}
+
+	t.contentWidth = min(t.precision, float64(t.maxDuration))
+	t.totalWidth = t.contentWidth + t.marginLeft + t.marginRight
 
 	return nil
 }
@@ -323,15 +349,15 @@ func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeig
 		currentDuration = event.Time.Sub(t.earliest)
 	}
 
-	startX := float64(t.marginLeft) + float64(t.contentWidth)*float64(currentDuration)/float64(t.maxDuration)
-	eventWidth := float64(t.contentWidth) * float64(event.Duration) / float64(t.maxDuration)
+	startX := t.marginLeft + t.contentWidth*float64(currentDuration)/float64(t.maxDuration)
+	eventWidth := t.contentWidth * float64(event.Duration) / float64(t.maxDuration)
 
 	var height int
 	var strokeDashArray string
 	var textYOffset float64
 
 	if event.Type == EventTypeEra {
-		height = t.svgHeight - currentY - t.marginBottom - (t.tickHeight * 3)
+		height = t.totalHeight - currentY - t.marginBottom - (t.tickHeight * 3)
 		strokeDashArray = fmt.Sprintf(` stroke-dasharray="0,%f,%d,0"`, eventWidth, height)
 		textYOffset = float64(rowHeight) / 3
 	} else {
