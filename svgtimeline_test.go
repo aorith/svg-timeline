@@ -165,8 +165,8 @@ func TestNewTimeline(t *testing.T) {
 				gotFn := fmt.Sprintf("%d_got_test.svg", i)
 				wantFn := fmt.Sprintf("%d_want_test.svg", i)
 				t.Errorf(`[%s] failed, resulting svg files saved as "%s" and "%s"`, tt.name, gotFn, wantFn)
-				_ = os.WriteFile(gotFn, []byte(svg), 0644)
-				_ = os.WriteFile(wantFn, []byte(tt.want), 0644)
+				_ = os.WriteFile(gotFn, []byte(svg), 0o644)
+				_ = os.WriteFile(wantFn, []byte(tt.want), 0o644)
 			}
 		})
 	}
