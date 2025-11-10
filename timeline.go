@@ -3,6 +3,7 @@
 package svgtimeline
 
 import (
+	"encoding/xml"
 	"fmt"
 	"math"
 	"strconv"
@@ -14,9 +15,6 @@ import (
 
 //go:embed default.css
 var DefaultStyle string
-
-//go:embed defs.xml
-var defs string
 
 type EventType int
 
@@ -220,29 +218,26 @@ func (t *Timeline) Generate() (string, error) {
 		return "", err
 	}
 
-	var sb strings.Builder
-
-	// SVG header
-	sb.WriteString("<svg")
-	if t.id != "" {
-		sb.WriteString(fmt.Sprintf(` id="%s"`, escapeXML(t.id)))
+	root := svg{
+		Xmlns:               "http://www.w3.org/2000/svg",
+		ID:                  t.id,
+		Width:               t.width,
+		Height:              t.height,
+		ViewBox:             fmt.Sprintf("0 0 %f %f", t.totalWidth, float64(t.totalHeight)),
+		PreserveAspectRatio: "xMinYMin meet",
 	}
-	sb.WriteString(fmt.Sprintf(
-		` xmlns="http://www.w3.org/2000/svg" width="%s" height="%s" viewBox="0 0 %f %f">`,
-		t.width, t.height, t.totalWidth, float64(t.totalHeight),
-	))
-	sb.WriteString("\n")
 
-	sb.WriteString("<defs>\n" + defs + "\n")
+	// Definitions
+	defs := svgDefs{}
 	if t.style != "" {
-		// Optional style
-		sb.WriteString("<style>\n" + t.style + "</style>\n")
+		defs.Elements = append(defs.Elements, svgStyle{Content: t.style})
 	}
-	sb.WriteString("</defs>\n")
+	root.Elements = append(root.Elements, defs)
 
 	// Background
-	sb.WriteString(fmt.Sprintf(`<rect class="tl-bg" x="0" y="0" width="%f" height="%d" fill="none" />`,
-		t.totalWidth, t.totalHeight))
+	root.Elements = append(root.Elements,
+		rect{Class: "tl-bg", X: 0, Y: 0, Width: t.totalWidth, Height: float64(t.totalHeight), Fill: "none"},
+	)
 
 	// Draw rows
 	currentY := t.marginTop
@@ -254,7 +249,7 @@ func (t *Timeline) Generate() (string, error) {
 
 		// Draw events
 		for _, event := range row.events {
-			currentDuration = t.drawEvent(&sb, event, currentY, row.height, currentDuration)
+			currentDuration = t.drawEvent(&root, event, currentY, row.height, currentDuration)
 		}
 
 		currentY += row.height + row.separatorHeight
@@ -262,13 +257,12 @@ func (t *Timeline) Generate() (string, error) {
 
 	// Draw timeline axis
 	timelineY := t.marginTop + t.contentHeight + t.tickHeight
-	sb.WriteString(fmt.Sprintf(`<line class="tl-axis" x1="%f" y1="%d" x2="%f" y2="%d"/>`,
-		t.marginLeft, timelineY, t.marginLeft+t.contentWidth, timelineY))
-	sb.WriteString("\n")
+	root.Elements = append(root.Elements,
+		line{Class: "tl-axis", X1: t.marginLeft, Y1: float64(timelineY), X2: t.marginLeft + t.contentWidth, Y2: float64(timelineY)},
+	)
 
 	// Draw tick marks and labels
-	sb.WriteString(`<g class="tl-ticks">`)
-	sb.WriteString("\n")
+	group := g{Class: "tl-ticks"}
 	if t.numTicks > 0 && t.maxDuration > 0 {
 		tickDuration := t.maxDuration / time.Duration(t.numTicks)
 
@@ -281,20 +275,25 @@ func (t *Timeline) Generate() (string, error) {
 			if i == 0 || i == t.numTicks {
 				topY = t.marginTop
 			}
-			sb.WriteString(fmt.Sprintf(`<line x1="%f" y1="%d" x2="%f" y2="%d"/>`,
-				x, topY, x, timelineY+t.tickHeight))
-			sb.WriteString("\n")
+			group.Elements = append(group.Elements,
+				line{X1: x, Y1: float64(topY), X2: x, Y2: float64(timelineY + t.tickHeight)},
+			)
 
 			// Tick label
 			label := formatDuration(currentDuration, 2)
-			sb.WriteString(fmt.Sprintf(`<text x="%f" y="%d" font-family="monospace" font-size="12" text-anchor="middle">%s</text>`,
-				x, timelineY+t.tickHeight+t.tickLabelMargin, label))
-			sb.WriteString("\n")
+			group.Elements = append(group.Elements,
+				text{X: x, Y: float64(timelineY + t.tickHeight + t.tickLabelMargin), FontSize: "12", FontFamily: "monospace", TextAnchor: "middle", Content: label},
+			)
 		}
 	}
-	sb.WriteString("</g>\n")
+	root.Elements = append(root.Elements, group)
 
-	sb.WriteString("</svg>")
+	var sb strings.Builder
+	encoder := xml.NewEncoder(&sb)
+	encoder.Indent("", "  ")
+	if err := encoder.Encode(root); err != nil {
+		return "", err
+	}
 	return sb.String(), nil
 }
 
@@ -344,7 +343,7 @@ func (t *Timeline) setup() error {
 }
 
 // drawEvent draws an event in the timeline
-func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeight int, currentDuration time.Duration) time.Duration {
+func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, currentDuration time.Duration) time.Duration {
 	if !t.earliest.IsZero() {
 		currentDuration = event.Time.Sub(t.earliest)
 	}
@@ -358,36 +357,34 @@ func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeig
 
 	if event.Type == EventTypeEra {
 		height = t.totalHeight - currentY - t.marginBottom - (t.tickHeight * 3)
-		strokeDashArray = fmt.Sprintf(` stroke-dasharray="0,%f,%d,0"`, eventWidth, height)
+		strokeDashArray = fmt.Sprintf(`0,%f,%d,0`, eventWidth, height)
 		textYOffset = float64(rowHeight) / 3
 	} else {
 		height = rowHeight
 		textYOffset = float64(rowHeight) / 2
 	}
 
-	sb.WriteString("<g")
-	if event.ID != "" {
-		fmt.Fprintf(sb, ` id="%s"`, event.ID)
-	}
-	className := "tl-event"
+	class := "tl-event"
 	if event.Type == EventTypeEra {
-		className = "tl-era"
+		class = "tl-era"
 	}
 	if event.Class != "" {
-		className += " " + event.Class
+		class += " " + event.Class
 	}
-	fmt.Fprintf(sb, ` class="%s"`, className)
-	sb.WriteString(">\n")
+
+	group := g{ID: event.ID, Class: class}
 
 	// Title
 	if event.Title != "" {
-		fmt.Fprintf(sb, `<title>%s</title>`, escapeXML(event.Title))
+		group.Elements = append(group.Elements,
+			title{Content: event.Title},
+		)
 	}
 
 	// Rectangle
-	fmt.Fprintf(sb, `<rect x="%f" y="%d" width="%f" height="%d"%s />`,
-		startX, currentY, eventWidth, height, strokeDashArray)
-	sb.WriteString("\n")
+	group.Elements = append(group.Elements,
+		rect{X: startX, Y: float64(currentY), Width: eventWidth, Height: float64(height), StrokeDasharray: strokeDashArray},
+	)
 
 	// Text
 	const textWidthFactor = 0.7
@@ -403,13 +400,13 @@ func (t *Timeline) drawEvent(sb *strings.Builder, event Event, currentY, rowHeig
 			textX := startX + eventWidth/2
 			textY := float64(currentY) + textYOffset
 
-			fmt.Fprintf(sb, `<text x="%f" y="%f" font-family="monospace" font-size="%dpx" dominant-baseline="middle" text-anchor="middle">%s</text>`,
-				textX, textY, textSize, escapeXML(event.Text))
-			sb.WriteString("\n")
+			group.Elements = append(group.Elements,
+				text{X: textX, Y: textY, FontSize: strconv.Itoa(textSize), FontFamily: "monospace", DominantBaseline: "middle", TextAnchor: "middle", Content: event.Text},
+			)
 		}
 	}
 
-	sb.WriteString("</g>\n")
+	root.Elements = append(root.Elements, group)
 
 	if t.earliest.IsZero() {
 		currentDuration += event.Duration
@@ -469,16 +466,6 @@ func (r *Row) EndTime() time.Time {
 		}
 	}
 	return end
-}
-
-// escapeXML escapes special XML characters
-func escapeXML(s string) string {
-	s = strings.ReplaceAll(s, "&", "&amp;")
-	s = strings.ReplaceAll(s, "<", "&lt;")
-	s = strings.ReplaceAll(s, ">", "&gt;")
-	s = strings.ReplaceAll(s, "\"", "&quot;")
-	s = strings.ReplaceAll(s, "'", "&apos;")
-	return s
 }
 
 // formatDuration rounds a time.Duration to the given digits and returns its String()

@@ -1,101 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="225" viewBox="0 0 1040.000000 225.000000">
-<defs>
-
-<style>
-.tl-bg {
-  fill: #ffffff;
-}
-
-.tl-event {
-  cursor: pointer;
-}
-
-.tl-event rect {
-  fill: rgba(115, 105, 250, 0.8);
-}
-
-.tl-event:hover rect {
-  fill: rgba(120, 110, 255, 1);
-  stroke: #000000;
-  stroke-width: 1;
-}
-
-.tl-event text {
-  fill: #ffffff;
-}
-
-.tl-era rect {
-  fill: rgba(200, 240, 240, 0.35);
-  stroke: rgba(200, 240, 240, 0.95);
-  stroke-width: 1;
-}
-
-.tl-era text {
-  fill: #000000;
-}
-
-.tl-axis,
-.tl-ticks line {
-  stroke: #333333;
-  stroke-width: 2;
-}
-
-.tl-ticks text {
-  fill: #333333;
-}
-</style>
-</defs>
-<rect class="tl-bg" x="0" y="0" width="1040.000000" height="225" fill="none" /><g class="tl-era ctl-request">
-<rect x="10.000000" y="15" width="769.230769" height="180" stroke-dasharray="0,769.230769,180,0" />
-<text x="394.615385" y="25.000000" font-family="monospace" font-size="14px" dominant-baseline="middle" text-anchor="middle">262_req</text>
-</g>
-<g class="tl-era ctl-bereq">
-<rect x="10.000000" y="50" width="307.692308" height="145" stroke-dasharray="0,307.692308,145,0" />
-<text x="163.846154" y="60.000000" font-family="monospace" font-size="14px" dominant-baseline="middle" text-anchor="middle">32783_bereq</text>
-</g>
-<g class="tl-event ctl-e-long">
-<rect x="10.000000" y="85" width="769.230769" height="30" />
-<text x="394.615385" y="100.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Long</text>
-</g>
-<g class="tl-event ctl-e-long">
-<rect x="779.230769" y="85" width="230.769231" height="30" />
-<text x="894.615385" y="100.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Short</text>
-</g>
-<g class="tl-event ctl-e-fetch">
-<rect x="10.000000" y="120" width="76.923077" height="30" />
-<text x="48.461538" y="135.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Fetch</text>
-</g>
-<g class="tl-event ctl-e-process">
-<rect x="86.923077" y="120" width="153.846154" height="30" />
-<text x="163.846154" y="135.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Process</text>
-</g>
-<g class="tl-event ctl-e-beresp">
-<rect x="10.000000" y="155" width="153.846154" height="30" />
-<text x="86.923077" y="170.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">Beresp</text>
-</g>
-<g class="tl-event ctl-e-berespbody">
-<rect x="163.846154" y="155" width="230.769231" height="30" />
-<text x="279.230769" y="170.000000" font-family="monospace" font-size="15px" dominant-baseline="middle" text-anchor="middle">BerespBody</text>
-</g>
-<line class="tl-axis" x1="10.000000" y1="195" x2="1010.000000" y2="195"/>
-<g class="tl-ticks">
-<line x1="10.000000" y1="15" x2="10.000000" y2="200"/>
-<text x="10.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">0s</text>
-<line x1="135.000000" y1="190" x2="135.000000" y2="200"/>
-<text x="135.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">1.63s</text>
-<line x1="260.000000" y1="190" x2="260.000000" y2="200"/>
-<text x="260.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">3.25s</text>
-<line x1="385.000000" y1="190" x2="385.000000" y2="200"/>
-<text x="385.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">4.88s</text>
-<line x1="510.000000" y1="190" x2="510.000000" y2="200"/>
-<text x="510.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">6.5s</text>
-<line x1="635.000000" y1="190" x2="635.000000" y2="200"/>
-<text x="635.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">8.13s</text>
-<line x1="760.000000" y1="190" x2="760.000000" y2="200"/>
-<text x="760.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">9.75s</text>
-<line x1="885.000000" y1="190" x2="885.000000" y2="200"/>
-<text x="885.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">11.38s</text>
-<line x1="1010.000000" y1="15" x2="1010.000000" y2="200"/>
-<text x="1010.000000" y="215" font-family="monospace" font-size="12" text-anchor="middle">13s</text>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="225" viewBox="0 0 1040.000000 225.000000" preserveAspectRatio="xMinYMin meet">
+  <defs>
+    <style>.tl-bg {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-event {&#xA;  cursor: pointer;&#xA;}&#xA;&#xA;.tl-event rect {&#xA;  fill: rgba(115, 105, 250, 0.8);&#xA;}&#xA;&#xA;.tl-event:hover rect {&#xA;  fill: rgba(120, 110, 255, 1);&#xA;  stroke: #000000;&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-event text {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-era rect {&#xA;  fill: rgba(200, 240, 240, 0.35);&#xA;  stroke: rgba(200, 240, 240, 0.95);&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-era text {&#xA;  fill: #000000;&#xA;}&#xA;&#xA;.tl-axis,&#xA;.tl-ticks line {&#xA;  stroke: #333333;&#xA;  stroke-width: 2;&#xA;}&#xA;&#xA;.tl-ticks text {&#xA;  fill: #333333;&#xA;}&#xA;</style>
+  </defs>
+  <rect class="tl-bg" x="0" y="0" width="1040" height="225" fill="none"></rect>
+  <g class="tl-era ctl-request">
+    <rect x="10" y="15" width="769.2307692307693" height="180" stroke-dasharray="0,769.230769,180,0"></rect>
+    <text x="394.61538461538464" y="25" font-size="14" font-family="monospace" text-anchor="middle" dominant-baseline="middle">262_req</text>
+  </g>
+  <g class="tl-era ctl-bereq">
+    <rect x="10" y="50" width="307.6923076923077" height="145" stroke-dasharray="0,307.692308,145,0"></rect>
+    <text x="163.84615384615384" y="60" font-size="14" font-family="monospace" text-anchor="middle" dominant-baseline="middle">32783_bereq</text>
+  </g>
+  <g class="tl-event ctl-e-long">
+    <rect x="10" y="85" width="769.2307692307693" height="30"></rect>
+    <text x="394.61538461538464" y="100" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Long</text>
+  </g>
+  <g class="tl-event ctl-e-long">
+    <rect x="779.2307692307693" y="85" width="230.76923076923077" height="30"></rect>
+    <text x="894.6153846153846" y="100" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Short</text>
+  </g>
+  <g class="tl-event ctl-e-fetch">
+    <rect x="10" y="120" width="76.92307692307692" height="30"></rect>
+    <text x="48.46153846153846" y="135" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Fetch</text>
+  </g>
+  <g class="tl-event ctl-e-process">
+    <rect x="86.92307692307692" y="120" width="153.84615384615384" height="30"></rect>
+    <text x="163.84615384615384" y="135" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Process</text>
+  </g>
+  <g class="tl-event ctl-e-beresp">
+    <rect x="10" y="155" width="153.84615384615384" height="30"></rect>
+    <text x="86.92307692307692" y="170" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Beresp</text>
+  </g>
+  <g class="tl-event ctl-e-berespbody">
+    <rect x="163.84615384615384" y="155" width="230.76923076923077" height="30"></rect>
+    <text x="279.2307692307692" y="170" font-size="15" font-family="monospace" text-anchor="middle" dominant-baseline="middle">BerespBody</text>
+  </g>
+  <line class="tl-axis" x1="10" y1="195" x2="1010" y2="195"></line>
+  <g class="tl-ticks">
+    <line x1="10" y1="15" x2="10" y2="200"></line>
+    <text x="10" y="215" font-size="12" font-family="monospace" text-anchor="middle">0s</text>
+    <line x1="135" y1="190" x2="135" y2="200"></line>
+    <text x="135" y="215" font-size="12" font-family="monospace" text-anchor="middle">1.63s</text>
+    <line x1="260" y1="190" x2="260" y2="200"></line>
+    <text x="260" y="215" font-size="12" font-family="monospace" text-anchor="middle">3.25s</text>
+    <line x1="385" y1="190" x2="385" y2="200"></line>
+    <text x="385" y="215" font-size="12" font-family="monospace" text-anchor="middle">4.88s</text>
+    <line x1="510" y1="190" x2="510" y2="200"></line>
+    <text x="510" y="215" font-size="12" font-family="monospace" text-anchor="middle">6.5s</text>
+    <line x1="635" y1="190" x2="635" y2="200"></line>
+    <text x="635" y="215" font-size="12" font-family="monospace" text-anchor="middle">8.13s</text>
+    <line x1="760" y1="190" x2="760" y2="200"></line>
+    <text x="760" y="215" font-size="12" font-family="monospace" text-anchor="middle">9.75s</text>
+    <line x1="885" y1="190" x2="885" y2="200"></line>
+    <text x="885" y="215" font-size="12" font-family="monospace" text-anchor="middle">11.38s</text>
+    <line x1="1010" y1="15" x2="1010" y2="200"></line>
+    <text x="1010" y="215" font-size="12" font-family="monospace" text-anchor="middle">13s</text>
+  </g>
 </svg>
