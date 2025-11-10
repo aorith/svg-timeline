@@ -8,7 +8,7 @@ Small go library and CLI tool to generate timeline SVGs based on the duration of
 
 ### As a library
 
-- [API](API.md)
+Check the reference [documentation](https://pkg.go.dev/github.com/aorith/svg-timeline)
 
 ```go
 package main
