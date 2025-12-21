@@ -150,7 +150,7 @@ func (t *Timeline) GetRows() []*Row {
 
 // GetRowByIndex returns the row at the index or nil if not found
 func (t *Timeline) GetRowByIndex(i int) *Row {
-	if i >= len(t.rows) {
+	if i >= len(t.rows) || i < 0 {
 		return nil
 	}
 	return t.rows[i]
