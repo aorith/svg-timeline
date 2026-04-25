@@ -157,10 +157,12 @@ func TestNewTimeline(t *testing.T) {
 					row.AddEvent(event)
 				}
 			}
+
 			svg, err := tl.Generate()
 			if err != nil {
 				fmt.Printf("%v\n", err)
 			}
+
 			if svg != tt.want {
 				gotFn := fmt.Sprintf("%d_got_test.svg", i)
 				wantFn := fmt.Sprintf("%d_want_test.svg", i)

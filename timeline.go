@@ -3,14 +3,14 @@
 package svgtimeline
 
 import (
+	_ "embed"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 	"time"
-
-	_ "embed"
 )
 
 //go:embed default.css
@@ -23,7 +23,7 @@ const (
 	EventTypeEra                   // A time period that spans vertically across all rows below it
 )
 
-// Event represents a timeline event
+// Event represents a timeline event.
 type Event struct {
 	Type     EventType     // type of the event - affects how it is drawn on the timeline
 	ID       string        // unique HTML identifier
@@ -34,14 +34,14 @@ type Event struct {
 	Time     time.Time     // absolute start time (leave zero for auto positioning by last duration)
 }
 
-// Row represents a row in the timeline
+// Row represents a row in the timeline.
 type Row struct {
 	height          int
 	separatorHeight int
 	events          []Event
 }
 
-// Timeline represents the entire timeline
+// Timeline represents the entire timeline.
 type Timeline struct {
 	rows []*Row
 
@@ -66,7 +66,7 @@ type Timeline struct {
 	totalWidth      float64
 }
 
-// NewTimeline creates a new timeline with default config
+// NewTimeline creates a new timeline with default config.
 func NewTimeline() *Timeline {
 	return &Timeline{
 		rows:         make([]*Row, 0),
@@ -83,7 +83,7 @@ func NewTimeline() *Timeline {
 	}
 }
 
-// SetID sets the unique HTML identifier of the timeline SVG
+// SetID sets the unique HTML identifier of the timeline SVG.
 func (t *Timeline) SetID(id string) {
 	t.id = id
 }
@@ -109,17 +109,17 @@ func (t *Timeline) SetHeight(height string) {
 	t.height = height
 }
 
-// SetNumTicks sets the number of ticks for the timeline
+// SetNumTicks sets the number of ticks for the timeline.
 func (t *Timeline) SetNumTicks(n int) {
 	t.numTicks = n
 }
 
-// SetTickHeight sets the height of the timeline ticks
+// SetTickHeight sets the height of the timeline ticks.
 func (t *Timeline) SetTickHeight(h int) {
 	t.tickHeight = h
 }
 
-// SetMargins sets the margins of the timeline inside of the SVG
+// SetMargins sets the margins of the timeline inside of the SVG.
 func (t *Timeline) SetMargins(top, right, bottom, left int) {
 	t.marginTop = top
 	t.marginBottom = bottom
@@ -127,12 +127,12 @@ func (t *Timeline) SetMargins(top, right, bottom, left int) {
 	t.marginRight = float64(right)
 }
 
-// SetStyle sets the CSS style for the timeline (for reference use the value of DefaultStyle)
+// SetStyle sets the CSS style for the timeline (for reference use the value of DefaultStyle).
 func (t *Timeline) SetStyle(s string) {
 	t.style = s
 }
 
-// AddRow adds a new row to the timeline
+// AddRow adds a new row to the timeline.
 func (t *Timeline) AddRow(height int, separatorHeight int) *Row {
 	row := &Row{
 		height:          height,
@@ -140,78 +140,88 @@ func (t *Timeline) AddRow(height int, separatorHeight int) *Row {
 		events:          make([]Event, 0),
 	}
 	t.rows = append(t.rows, row)
+
 	return row
 }
 
-// GetRows returns the timeline rows
+// GetRows returns the timeline rows.
 func (t *Timeline) GetRows() []*Row {
 	return t.rows
 }
 
-// GetRowByIndex returns the row at the index or nil if not found
+// GetRowByIndex returns the row at the index or nil if not found.
 func (t *Timeline) GetRowByIndex(i int) *Row {
 	if i >= len(t.rows) || i < 0 {
 		return nil
 	}
+
 	return t.rows[i]
 }
 
-// GetLastRow returns the last row
+// GetLastRow returns the last row.
 func (t *Timeline) GetLastRow() *Row {
 	if len(t.rows) == 0 {
 		return nil
 	}
+
 	return t.rows[len(t.rows)-1]
 }
 
-// MaxDuration returns the maximum duration across all rows
+// MaxDuration returns the maximum duration across all rows.
 func (t *Timeline) MaxDuration() time.Duration {
 	var m time.Duration
+
 	for _, row := range t.rows {
 		duration := row.TotalDuration(t.StartTime())
 		if duration > m {
 			m = duration
 		}
 	}
+
 	return m
 }
 
-// TotalRowHeight calculates the total height of all rows including separators
+// TotalRowHeight calculates the total height of all rows including separators.
 func (t *Timeline) TotalRowHeight() int {
 	total := 0
 	for _, row := range t.rows {
 		total += row.height + row.separatorHeight
 	}
+
 	return total
 }
 
 // StartTime returns the earliest time that is currently set on the timeline
-// given the existing rows and events
+// given the existing rows and events.
 func (t *Timeline) StartTime() time.Time {
 	var earliest time.Time
+
 	for _, r := range t.rows {
 		rowStartTime := r.StartTime()
 		if earliest.IsZero() || rowStartTime.Before(earliest) {
 			earliest = rowStartTime
 		}
 	}
+
 	return earliest
 }
 
 // EndTime returns the latest time that is currently set on the timeline
-// given the added rows and events (including their durations)
+// given the added rows and events (including their durations).
 func (t *Timeline) EndTime() time.Time {
 	var end time.Time
+
 	for _, r := range t.rows {
 		rowEndTime := r.EndTime()
 		if end.IsZero() || rowEndTime.After(end) {
 			end = rowEndTime
 		}
 	}
+
 	return end
 }
 
-// Generate generates the timeline SVG with the current configuration
+// Generate generates the timeline SVG with the current configuration.
 func (t *Timeline) Generate() (string, error) {
 	err := t.setup()
 	if err != nil {
@@ -219,7 +229,7 @@ func (t *Timeline) Generate() (string, error) {
 	}
 
 	root := svg{
-		Xmlns:               "http://www.w3.org/2000/svg",
+		Xmlns:               "http://www.w3.org/2000/svg", // nolint: revive
 		ID:                  t.id,
 		Width:               t.width,
 		Height:              t.height,
@@ -232,6 +242,7 @@ func (t *Timeline) Generate() (string, error) {
 	if t.style != "" {
 		defs.Elements = append(defs.Elements, svgStyle{Content: t.style})
 	}
+
 	root.Elements = append(root.Elements, defs)
 
 	// Background
@@ -245,6 +256,7 @@ func (t *Timeline) Generate() (string, error) {
 		if t.maxDuration <= 0 {
 			break
 		}
+
 		var currentDuration time.Duration
 
 		// Draw events
@@ -263,6 +275,7 @@ func (t *Timeline) Generate() (string, error) {
 
 	// Draw tick marks and labels
 	group := g{Class: "tl-ticks"}
+
 	if t.numTicks > 0 && t.maxDuration > 0 {
 		tickDuration := t.maxDuration / time.Duration(t.numTicks)
 
@@ -275,6 +288,7 @@ func (t *Timeline) Generate() (string, error) {
 			if i == 0 || i == t.numTicks {
 				topY = t.marginTop
 			}
+
 			group.Elements = append(group.Elements,
 				line{X1: x, Y1: float64(topY), X2: x, Y2: float64(timelineY + t.tickHeight)},
 			)
@@ -286,29 +300,37 @@ func (t *Timeline) Generate() (string, error) {
 			)
 		}
 	}
+
 	root.Elements = append(root.Elements, group)
 
 	var sb strings.Builder
+
 	encoder := xml.NewEncoder(&sb)
 	encoder.Indent("", "  ")
-	if err := encoder.Encode(root); err != nil {
+
+	err = encoder.Encode(root)
+	if err != nil {
 		return "", err
 	}
+
 	return sb.String(), nil
 }
 
 // setup initializes timeline variables and ensures consistency across events
 // - if any event sets its Time, all events must set it and the earliest time is returned
-// - at least one event must have a duration greater than 0
+// - at least one event must have a duration greater than 0.
 func (t *Timeline) setup() error {
-	var hasTime, hasNoTime bool
-	var duration time.Duration
+	var (
+		hasTime, hasNoTime bool
+		duration           time.Duration
+	)
 
 	for _, r := range t.rows {
 		for _, e := range r.events {
 			if e.Duration < 0 {
-				return fmt.Errorf("duration of events cannot be negative")
+				return errors.New("duration of events cannot be negative")
 			}
+
 			duration += e.Duration
 			if e.Time.IsZero() {
 				hasNoTime = true
@@ -319,11 +341,11 @@ func (t *Timeline) setup() error {
 	}
 
 	if hasTime && hasNoTime {
-		return fmt.Errorf(`when "Time" is set on any Event, it must be set on all of them`)
+		return errors.New(`when "Time" is set on any Event, it must be set on all of them`)
 	}
 
 	if duration == 0 {
-		return fmt.Errorf("none of the events has a positive duration")
+		return errors.New("none of the events has a positive duration")
 	}
 
 	// Initialize variables
@@ -331,6 +353,7 @@ func (t *Timeline) setup() error {
 	t.maxDuration = t.MaxDuration()
 	t.contentHeight = t.TotalRowHeight()
 	t.earliest = t.StartTime()
+
 	t.totalHeight = t.contentHeight + t.marginTop + t.marginBottom + t.tickHeight + t.tickLabelMargin
 	if t.height == "" {
 		t.height = strconv.Itoa(t.totalHeight)
@@ -342,7 +365,7 @@ func (t *Timeline) setup() error {
 	return nil
 }
 
-// drawEvent draws an event in the timeline
+// drawEvent draws an event in the timeline.
 func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, currentDuration time.Duration) time.Duration {
 	if !t.earliest.IsZero() {
 		currentDuration = event.Time.Sub(t.earliest)
@@ -351,9 +374,11 @@ func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, cu
 	startX := t.marginLeft + t.contentWidth*float64(currentDuration)/float64(t.maxDuration)
 	eventWidth := t.contentWidth * float64(event.Duration) / float64(t.maxDuration)
 
-	var height int
-	var strokeDashArray string
-	var textYOffset float64
+	var (
+		height          int
+		strokeDashArray string
+		textYOffset     float64
+	)
 
 	if event.Type == EventTypeEra {
 		height = t.totalHeight - currentY - t.marginBottom - (t.tickHeight * 3)
@@ -368,6 +393,7 @@ func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, cu
 	if event.Type == EventTypeEra {
 		class = "tl-era"
 	}
+
 	if event.Class != "" {
 		class += " " + event.Class
 	}
@@ -394,8 +420,9 @@ func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, cu
 			eventWidth/(float64(len(event.Text))*textWidthFactor),
 		))
 		if event.Type == EventTypeEra {
-			textSize -= 1
+			textSize--
 		}
+
 		if textSize >= 3 {
 			textX := startX + eventWidth/2
 			textY := float64(currentY) + textYOffset
@@ -415,15 +442,17 @@ func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, cu
 	return currentDuration
 }
 
-// AddEvent adds an event to a row
+// AddEvent adds an event to a row.
 func (r *Row) AddEvent(e Event) {
 	r.events = append(r.events, e)
 }
 
-// TotalDuration returns the total duration for a row
+// TotalDuration returns the total duration for a row.
 func (r *Row) TotalDuration(earliest time.Time) time.Duration {
-	var total time.Duration
-	var maxByTime time.Duration
+	var (
+		total     time.Duration
+		maxByTime time.Duration
+	)
 
 	for _, event := range r.events {
 		total += event.Duration
@@ -434,43 +463,51 @@ func (r *Row) TotalDuration(earliest time.Time) time.Duration {
 			}
 		}
 	}
+
 	return max(total, maxByTime)
 }
 
 // StartTime returns the earliest time that is currently set on the row
-// given the existing events
+// given the existing events.
 func (r *Row) StartTime() time.Time {
 	var earliest time.Time
+
 	for _, e := range r.events {
 		if e.Time.IsZero() {
 			continue
 		}
+
 		if earliest.IsZero() || e.Time.Before(earliest) {
 			earliest = e.Time
 		}
 	}
+
 	return earliest
 }
 
 // EndTime returns the latest time that is currently set on the row
-// given the existing events (including their durations)
+// given the existing events (including their durations).
 func (r *Row) EndTime() time.Time {
 	var end time.Time
+
 	for _, e := range r.events {
 		if e.Time.IsZero() {
 			continue
 		}
+
 		eventEnd := e.Time.Add(e.Duration)
 		if end.IsZero() || eventEnd.After(end) {
 			end = eventEnd
 		}
 	}
+
 	return end
 }
 
-// formatDuration rounds a time.Duration to the given digits and returns its String()
+// formatDuration rounds a time.Duration to the given digits and returns its String().
 func formatDuration(d time.Duration, digits int) string {
 	div := time.Duration(math.Pow(10, float64(digits)))
+
 	switch {
 	case d > time.Second:
 		d = d.Round(time.Second / div)
@@ -481,5 +518,6 @@ func formatDuration(d time.Duration, digits int) string {
 	case d > time.Nanosecond:
 		d = d.Round(time.Nanosecond / div)
 	}
+
 	return d.String()
 }

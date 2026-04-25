@@ -19,10 +19,10 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s -i <input.cfg> [-s <style.css>] [-o <output.svg>]\n\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Generate SVG timeline from CFG file.\n\n")
-		fmt.Fprintf(os.Stderr, "Options:\n")
+		fmt.Fprint(os.Stderr, "Generate SVG timeline from CFG file.\n\n")
+		fmt.Fprint(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "\nExample:\n")
+		fmt.Fprint(os.Stderr, "\nExample:\n")
 		fmt.Fprintf(os.Stderr, "  %s -i timeline.cfg -s style.css -o timeline.svg\n", os.Args[0])
 	}
 
@@ -42,10 +42,12 @@ func main() {
 	if *outputFile == "" {
 		fmt.Println(svg)
 	} else {
-		if err := os.WriteFile(*outputFile, []byte(svg), 0o644); err != nil {
+		err := os.WriteFile(*outputFile, []byte(svg), 0o644)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing output file: %v\n", err)
 			os.Exit(1)
 		}
+
 		fmt.Fprintf(os.Stderr, "Timeline written to %s\n", *outputFile)
 	}
 }

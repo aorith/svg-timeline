@@ -12,20 +12,22 @@ import (
 	"time"
 )
 
-// GenerateFromCFG generates the timeline by parsing a config file with an optional css style
+// GenerateFromCFG generates the timeline by parsing a config file with an optional css style.
 func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 	var cssStyle string
+
 	if cssFilename != "" {
 		css, err := os.ReadFile(cssFilename)
 		if err != nil {
-			return "", fmt.Errorf("error reading file '%s': %v", cssFilename, err)
+			return "", fmt.Errorf("error reading file '%s': %w", cssFilename, err)
 		}
+
 		cssStyle = string(css)
 	}
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return "", fmt.Errorf("error reading file '%s': %v", filename, err)
+		return "", fmt.Errorf("error reading file '%s': %w", filename, err)
 	}
 
 	r := bytes.NewReader(data)
@@ -36,10 +38,12 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 
 	margins := [4]int{0, 0, 0, 0} // top , right , bottom , left
 	setMargins := false
+
 	var currentEvent *Event
 
 	currentSection := ""
 	lineNum := 0
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		lineNum++
@@ -48,6 +52,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 		if line == "" || line[0] == '#' {
 			continue
 		}
+
 		parts := strings.Split(line, " ")
 
 		switch line[0] {
@@ -57,6 +62,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 				if row == nil {
 					return "", fmt.Errorf("error at line %d, cannot add an event without creating a row first", lineNum)
 				}
+
 				row.AddEvent(*currentEvent)
 				currentEvent = nil
 			}
@@ -71,26 +77,26 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 				currentEvent = &Event{Type: EventTypeEra}
 			case "@task":
 				currentEvent = &Event{Type: EventTypeTask}
+			default:
 			}
 
 		default:
 			key, val, ok := strings.Cut(line, "=")
-			if ok {
-				key = strings.TrimSpace(key)
-				val = strings.TrimSpace(val)
-			} else {
+			if !ok {
 				return "", fmt.Errorf("unknown value at line %d", lineNum)
 			}
+
+			key = strings.TrimSpace(key)
+			val = strings.TrimSpace(val)
 
 			switch currentSection {
 			case "@timeline":
 				switch key {
-
 				// Single digit properties
 				case "precision", "num_ticks", "tick_height", "margin_top", "margin_bottom", "margin_left", "margin_right":
 					x, err2 := strconv.Atoi(val)
 					if err2 != nil {
-						return "", fmt.Errorf("error at line %d: %v", lineNum, err2)
+						return "", fmt.Errorf("error at line %d: %w", lineNum, err2)
 					}
 
 					switch key {
@@ -112,6 +118,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 					case "margin_left":
 						setMargins = true
 						margins[3] = x
+					default:
 					}
 
 				case "id":
@@ -145,8 +152,9 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 				case "duration":
 					dur, err2 := time.ParseDuration(val)
 					if err2 != nil {
-						return "", fmt.Errorf("error at line %d while parsing duration of event, %v", lineNum, err2)
+						return "", fmt.Errorf("error at line %d while parsing duration of event, %w", lineNum, err2)
 					}
+
 					currentEvent.Duration = dur
 
 				case "time":
@@ -154,6 +162,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 					if err2 != nil {
 						return "", err2
 					}
+
 					currentEvent.Time = t
 
 				default:
@@ -164,11 +173,11 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 				return "", fmt.Errorf("unknown section: %s", currentSection)
 			}
 		}
-
 	}
 
-	if err = scanner.Err(); err != nil {
-		return "", fmt.Errorf("scanner error: %v", err)
+	err = scanner.Err()
+	if err != nil {
+		return "", fmt.Errorf("scanner error: %w", err)
 	}
 
 	// Last event
@@ -176,8 +185,8 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 	if row == nil {
 		return "", fmt.Errorf("error at line %d, cannot add an event without creating a row first", lineNum)
 	}
+
 	row.AddEvent(*currentEvent)
-	currentEvent = nil
 
 	if setMargins {
 		tl.SetMargins(margins[0], margins[1], margins[2], margins[3])
@@ -191,19 +200,21 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 }
 
 // parseIntDefault is a helper function to convert a string to int
-// returns the default value if parsing fails
+// returns the default value if parsing fails.
 func parseIntDefault(parts []string, i, def int) int {
 	if len(parts) <= i {
 		return def
 	}
+
 	n, err := strconv.Atoi(parts[i])
 	if err != nil {
 		return def
 	}
+
 	return n
 }
 
-// parseTime tries to parse time strings in common formats
+// parseTime tries to parse time strings in common formats.
 func parseTime(input string) (time.Time, error) {
 	formats := []string{
 		"2006-01-02T15:04:05.99Z", // UTC with nanosecond precision
@@ -225,13 +236,17 @@ func parseTime(input string) (time.Time, error) {
 		"15:04",                   // Hour and minute only
 	}
 
-	var t time.Time
-	var err error
+	var (
+		t   time.Time
+		err error
+	)
+
 	for _, layout := range formats {
 		t, err = time.Parse(layout, input)
 		if err == nil {
 			return t, nil
 		}
 	}
+
 	return time.Time{}, fmt.Errorf("unrecognized time format: %s\nyou might use one of the following formats: %v", input, formats)
 }
