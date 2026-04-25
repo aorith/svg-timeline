@@ -517,6 +517,7 @@ func formatDuration(d time.Duration, digits int) string {
 		d = d.Round(time.Microsecond / div)
 	case d > time.Nanosecond:
 		d = d.Round(time.Nanosecond / div)
+	default:
 	}
 
 	return d.String()

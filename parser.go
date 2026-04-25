@@ -53,7 +53,7 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 			continue
 		}
 
-		parts := strings.Split(line, " ")
+		parts := strings.Fields(line)
 
 		switch line[0] {
 		case '@':
@@ -181,12 +181,14 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 	}
 
 	// Last event
-	row := tl.GetLastRow()
-	if row == nil {
-		return "", fmt.Errorf("error at line %d, cannot add an event without creating a row first", lineNum)
-	}
+	if currentEvent != nil {
+		row := tl.GetLastRow()
+		if row == nil {
+			return "", fmt.Errorf("error at line %d, cannot add an event without creating a row first", lineNum)
+		}
 
-	row.AddEvent(*currentEvent)
+		row.AddEvent(*currentEvent)
+	}
 
 	if setMargins {
 		tl.SetMargins(margins[0], margins[1], margins[2], margins[3])
