@@ -35,7 +35,8 @@ func main() {
 
 	svg, err := svgtimeline.GenerateFromCFG(*inputFile, *cssFile)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Error generating timeline: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Write output

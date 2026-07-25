@@ -7,7 +7,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -45,17 +44,18 @@ type Row struct {
 type Timeline struct {
 	rows []*Row
 
-	id           string
-	width        string
-	height       string
-	precision    float64
-	numTicks     int
-	tickHeight   int
-	marginTop    int
-	marginBottom int
-	marginLeft   float64
-	marginRight  float64
-	style        string
+	id             string
+	width          string
+	height         string
+	contentWidthPx float64
+	minEventWidth  float64
+	numTicks       int
+	tickHeight     int
+	marginTop      int
+	marginBottom   int
+	marginLeft     float64
+	marginRight    float64
+	style          string
 
 	earliest        time.Time // Earliest time within the timeline
 	maxDuration     time.Duration
@@ -69,17 +69,18 @@ type Timeline struct {
 // NewTimeline creates a new timeline with default config.
 func NewTimeline() *Timeline {
 	return &Timeline{
-		rows:         make([]*Row, 0),
-		id:           "",
-		width:        "100%",
-		precision:    float64(1000),
-		numTicks:     8,
-		tickHeight:   5,
-		marginTop:    15,
-		marginBottom: 15,
-		marginLeft:   10,
-		marginRight:  30,
-		style:        DefaultStyle,
+		rows:           make([]*Row, 0),
+		id:             "",
+		width:          "100%",
+		contentWidthPx: float64(1000),
+		minEventWidth:  2,
+		numTicks:       8,
+		tickHeight:     5,
+		marginTop:      15,
+		marginBottom:   15,
+		marginLeft:     10,
+		marginRight:    30,
+		style:          DefaultStyle,
 	}
 }
 
@@ -88,11 +89,21 @@ func (t *Timeline) SetID(id string) {
 	t.id = id
 }
 
-// SetPrecision sets the precision of the timeline
+// SetContentWidth sets the width in pixels used to represent the full
+// duration span of the timeline, before margins are added.
 //
-// Higher precision creates wider timelines (default: 1000).
-func (t *Timeline) SetPrecision(p int) {
-	t.precision = float64(p)
+// Higher values create wider timelines (default: 1000).
+func (t *Timeline) SetContentWidth(px int) {
+	t.contentWidthPx = float64(px)
+}
+
+// SetMinEventWidth sets the minimum rendered width in pixels of an event's rectangle.
+//
+// Events whose computed width would fall below this value are drawn at this
+// width instead, so very short events remain visible next to much longer
+// ones (default: 2).
+func (t *Timeline) SetMinEventWidth(w int) {
+	t.minEventWidth = float64(w)
 }
 
 // SetWidth sets the SVG width.
@@ -278,6 +289,7 @@ func (t *Timeline) Generate() (string, error) {
 
 	if t.numTicks > 0 && t.maxDuration > 0 {
 		tickDuration := t.maxDuration / time.Duration(t.numTicks)
+		unit, unitSuffix := axisUnit(t.maxDuration)
 
 		for i := 0; i <= t.numTicks; i++ {
 			currentDuration := tickDuration * time.Duration(i)
@@ -294,7 +306,7 @@ func (t *Timeline) Generate() (string, error) {
 			)
 
 			// Tick label
-			label := formatDuration(currentDuration, 2)
+			label := formatDuration(currentDuration, unit, unitSuffix)
 			group.Elements = append(group.Elements,
 				text{X: x, Y: float64(timelineY + t.tickHeight + t.tickLabelMargin), FontSize: "12", FontFamily: "monospace", TextAnchor: "middle", Content: label},
 			)
@@ -359,7 +371,7 @@ func (t *Timeline) setup() error {
 		t.height = strconv.Itoa(t.totalHeight)
 	}
 
-	t.contentWidth = min(t.precision, float64(t.maxDuration))
+	t.contentWidth = min(t.contentWidthPx, float64(t.maxDuration))
 	t.totalWidth = t.contentWidth + t.marginLeft + t.marginRight
 
 	return nil
@@ -372,7 +384,7 @@ func (t *Timeline) drawEvent(root *svg, event Event, currentY, rowHeight int, cu
 	}
 
 	startX := t.marginLeft + t.contentWidth*float64(currentDuration)/float64(t.maxDuration)
-	eventWidth := t.contentWidth * float64(event.Duration) / float64(t.maxDuration)
+	eventWidth := max(t.contentWidth*float64(event.Duration)/float64(t.maxDuration), t.minEventWidth)
 
 	var (
 		height          int
@@ -448,15 +460,25 @@ func (r *Row) AddEvent(e Event) {
 }
 
 // TotalDuration returns the total duration for a row.
+//
+// If any event has its Time set, the result is the row's actual time span
+// (from the given earliest time to its latest event's end) so that events
+// overlapping or nested within one another (e.g. a sub-task inside a longer
+// parent task) don't inflate the duration beyond the real span. Otherwise
+// it's the sum of all event durations laid back-to-back.
 func (r *Row) TotalDuration(earliest time.Time) time.Duration {
 	var (
 		total     time.Duration
 		maxByTime time.Duration
+		hasTime   bool
 	)
 
 	for _, event := range r.events {
 		total += event.Duration
-		if !earliest.IsZero() && !event.Time.IsZero() {
+
+		if !event.Time.IsZero() {
+			hasTime = true
+
 			byTime := event.Time.Sub(earliest) + event.Duration
 			if byTime > maxByTime {
 				maxByTime = byTime
@@ -464,7 +486,11 @@ func (r *Row) TotalDuration(earliest time.Time) time.Duration {
 		}
 	}
 
-	return max(total, maxByTime)
+	if hasTime {
+		return maxByTime
+	}
+
+	return total
 }
 
 // StartTime returns the earliest time that is currently set on the row
@@ -504,21 +530,34 @@ func (r *Row) EndTime() time.Time {
 	return end
 }
 
-// formatDuration rounds a time.Duration to the given digits and returns its String().
-func formatDuration(d time.Duration, digits int) string {
-	div := time.Duration(math.Pow(10, float64(digits)))
-
+// axisUnit picks a single display unit for the whole tick axis based on the
+// total duration span, so every tick label shares the same unit instead of
+// e.g. switching between "ms" and "s" across the axis.
+func axisUnit(d time.Duration) (time.Duration, string) {
 	switch {
-	case d > time.Second:
-		d = d.Round(time.Second / div)
-	case d > time.Millisecond:
-		d = d.Round(time.Millisecond / div)
-	case d > time.Microsecond:
-		d = d.Round(time.Microsecond / div)
-	case d > time.Nanosecond:
-		d = d.Round(time.Nanosecond / div)
+	case d >= time.Hour:
+		return time.Hour, "h"
+	case d >= time.Minute:
+		return time.Minute, "m"
+	case d >= time.Second:
+		return time.Second, "s"
+	case d >= time.Millisecond:
+		return time.Millisecond, "ms"
+	case d >= time.Microsecond:
+		return time.Microsecond, "µs"
 	default:
+		return time.Nanosecond, "ns"
 	}
+}
 
-	return d.String()
+// formatDuration renders d as a decimal number of unit with up to 2 decimal
+// digits, trimming trailing zeros (e.g. "2.5s", not "2.50s").
+func formatDuration(d, unit time.Duration, suffix string) string {
+	value := float64(d) / float64(unit)
+
+	s := strconv.FormatFloat(value, 'f', 2, 64)
+	s = strings.TrimRight(s, "0")
+	s = strings.TrimRight(s, ".")
+
+	return s + suffix
 }

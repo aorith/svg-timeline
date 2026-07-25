@@ -1,6 +1,6 @@
 <svg id="timeline-0" xmlns="http://www.w3.org/2000/svg" width="1000" height="164" viewBox="0 0 1040.000000 164.000000" preserveAspectRatio="xMinYMin meet">
   <defs>
-    <style>.tl-bg {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-event {&#xA;  cursor: pointer;&#xA;}&#xA;&#xA;.tl-event rect {&#xA;  fill: rgba(115, 105, 250, 0.8);&#xA;}&#xA;&#xA;.tl-event:hover rect {&#xA;  fill: rgba(120, 110, 255, 1);&#xA;  stroke: #000000;&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-event text {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-era rect {&#xA;  fill: rgba(200, 240, 240, 0.35);&#xA;  stroke: rgba(200, 240, 240, 0.95);&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-era text {&#xA;  fill: #000000;&#xA;}&#xA;&#xA;.tl-axis,&#xA;.tl-ticks line {&#xA;  stroke: #333333;&#xA;  stroke-width: 2;&#xA;}&#xA;&#xA;.tl-ticks text {&#xA;  fill: #333333;&#xA;}&#xA;</style>
+    <style>.tl-bg {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-event {&#xA;  cursor: pointer;&#xA;}&#xA;&#xA;.tl-event rect {&#xA;  fill: rgba(115, 105, 250, 0.8);&#xA;  stroke: rgba(255, 255, 255, 0.9);&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-event:hover rect {&#xA;  fill: rgba(120, 110, 255, 1);&#xA;  stroke: #000000;&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-event text {&#xA;  fill: #ffffff;&#xA;}&#xA;&#xA;.tl-era rect {&#xA;  fill: rgba(200, 240, 240, 0.35);&#xA;  stroke: rgba(200, 240, 240, 0.95);&#xA;  stroke-width: 1;&#xA;}&#xA;&#xA;.tl-era text {&#xA;  fill: #000000;&#xA;}&#xA;&#xA;.tl-axis,&#xA;.tl-ticks line {&#xA;  stroke: #333333;&#xA;  stroke-width: 2;&#xA;}&#xA;&#xA;.tl-ticks text {&#xA;  fill: #333333;&#xA;}&#xA;</style>
   </defs>
   <rect class="tl-bg" x="0" y="0" width="1040" height="164" fill="none"></rect>
   <g class="tl-era">
@@ -32,11 +32,11 @@
     <line x1="10" y1="15" x2="10" y2="139"></line>
     <text x="10" y="154" font-size="12" font-family="monospace" text-anchor="middle">0s</text>
     <line x1="135" y1="129" x2="135" y2="139"></line>
-    <text x="135" y="154" font-size="12" font-family="monospace" text-anchor="middle">375ms</text>
+    <text x="135" y="154" font-size="12" font-family="monospace" text-anchor="middle">0.38s</text>
     <line x1="260" y1="129" x2="260" y2="139"></line>
-    <text x="260" y="154" font-size="12" font-family="monospace" text-anchor="middle">750ms</text>
+    <text x="260" y="154" font-size="12" font-family="monospace" text-anchor="middle">0.75s</text>
     <line x1="385" y1="129" x2="385" y2="139"></line>
-    <text x="385" y="154" font-size="12" font-family="monospace" text-anchor="middle">1.13s</text>
+    <text x="385" y="154" font-size="12" font-family="monospace" text-anchor="middle">1.12s</text>
     <line x1="510" y1="129" x2="510" y2="139"></line>
     <text x="510" y="154" font-size="12" font-family="monospace" text-anchor="middle">1.5s</text>
     <line x1="635" y1="129" x2="635" y2="139"></line>
@@ -44,7 +44,7 @@
     <line x1="760" y1="129" x2="760" y2="139"></line>
     <text x="760" y="154" font-size="12" font-family="monospace" text-anchor="middle">2.25s</text>
     <line x1="885" y1="129" x2="885" y2="139"></line>
-    <text x="885" y="154" font-size="12" font-family="monospace" text-anchor="middle">2.63s</text>
+    <text x="885" y="154" font-size="12" font-family="monospace" text-anchor="middle">2.62s</text>
     <line x1="1010" y1="15" x2="1010" y2="139"></line>
     <text x="1010" y="154" font-size="12" font-family="monospace" text-anchor="middle">3s</text>
   </g>

@@ -93,15 +93,17 @@ func GenerateFromCFG(filename string, cssFilename string) (string, error) {
 			case "@timeline":
 				switch key {
 				// Single digit properties
-				case "precision", "num_ticks", "tick_height", "margin_top", "margin_bottom", "margin_left", "margin_right":
+				case "content_width", "min_event_width", "num_ticks", "tick_height", "margin_top", "margin_bottom", "margin_left", "margin_right":
 					x, err2 := strconv.Atoi(val)
 					if err2 != nil {
 						return "", fmt.Errorf("error at line %d: %w", lineNum, err2)
 					}
 
 					switch key {
-					case "precision":
-						tl.SetPrecision(x)
+					case "content_width":
+						tl.SetContentWidth(x)
+					case "min_event_width":
+						tl.SetMinEventWidth(x)
 					case "num_ticks":
 						tl.SetNumTicks(x)
 					case "tick_height":
